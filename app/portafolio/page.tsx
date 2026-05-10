@@ -20,7 +20,7 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 
 export default function PortafolioPage() {
   return (
-    <RouteGuard allowedRoles={["empleado", "cliente"]}>
+    <RouteGuard allowedRoles={["gerente_cartera", "analyst"]}>
       <PortafolioContent />
     </RouteGuard>
   )
@@ -30,7 +30,7 @@ function PortafolioContent() {
   const { user } = useAuth()
   if (!user) return null
 
-  const isEmpleado = user.role === "empleado"
+  const isGerente = user.role === "gerente_cartera"
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
@@ -49,22 +49,22 @@ function PortafolioContent() {
         }
       />
 
-      {isEmpleado && (
+      {isGerente && (
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle className="text-base">Cliente</CardTitle>
-            <CardDescription>Selecciona un cliente para consultar su portafolio.</CardDescription>
+            <CardTitle className="text-base">Empresa</CardTitle>
+            <CardDescription>Selecciona una empresa cliente para consultar su portafolio.</CardDescription>
           </CardHeader>
           <CardContent>
             <Field>
-              <FieldLabel htmlFor="cliente">Cliente</FieldLabel>
+              <FieldLabel htmlFor="empresa">Empresa</FieldLabel>
               <Select>
-                <SelectTrigger id="cliente" className="w-full sm:max-w-sm">
-                  <SelectValue placeholder="— Selecciona un cliente —" />
+                <SelectTrigger id="empresa" className="w-full sm:max-w-sm">
+                  <SelectValue placeholder="— Selecciona una empresa —" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="placeholder" disabled>
-                    Aún no hay clientes cargados
+                    Aún no hay empresas cargadas
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -101,9 +101,9 @@ function PortafolioContent() {
                         </EmptyMedia>
                         <EmptyTitle>Sin operaciones registradas</EmptyTitle>
                         <EmptyDescription>
-                          {isEmpleado
-                            ? "Selecciona un cliente o registra una operación para ver posiciones."
-                            : "Aún no tienes instrumentos en tu portafolio. Puedes comprar bonos desde la sección Compra / Venta."}
+                          {isGerente
+                            ? "Selecciona una empresa o registra una operación para ver posiciones."
+                            : "Aún no hay instrumentos en este portafolio. Puedes consultar la valuación de bonos."}
                         </EmptyDescription>
                       </EmptyHeader>
                       <EmptyContent>

@@ -17,7 +17,7 @@ type Operacion = "compra" | "venta"
 
 export default function OperacionesPage() {
   return (
-    <RouteGuard allowedRoles={["empleado", "cliente"]}>
+    <RouteGuard allowedRoles={["gerente_cartera"]}>
       <OperacionesContent />
     </RouteGuard>
   )

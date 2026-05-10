@@ -11,14 +11,14 @@ export default function Home() {
 
   useEffect(() => {
     if (user) router.replace("/dashboard")
-    else router.replace("/login")
+    else router.replace("/landing")
   }, [user, router])
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Spinner />
-        <span>Redirigiendo...</span>
+        <span>Cargando...</span>
       </div>
     </div>
   )
