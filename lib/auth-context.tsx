@@ -2,13 +2,15 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
-export type Role = "admin" | "empleado" | "cliente"
+// Roles reales según tabla `roles` del modelo SoftCom
+export type Role = "admin" | "gerente_cartera" | "analyst"
 
 export type User = {
   id: string
   nombre: string
   email: string
   role: Role
+  // En producción vendrá del JWT/session: id_empresa, id_usuario, etc.
 }
 
 type AuthContextType = {
@@ -19,11 +21,33 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Mock de usuarios (placeholder hasta conectar backend)
+// Mock de usuarios (placeholder hasta conectar backend PostgreSQL)
+// Basado en la tabla `usuarios` + `roles` del modelo relacional SoftCom
 const MOCK_USERS: Array<User & { password: string }> = [
-  { id: "1", nombre: "Admin Demo", email: "admin@softcom.com", password: "admin", role: "admin" },
-  { id: "2", nombre: "Empleado Demo", email: "empleado@softcom.com", password: "empleado", role: "empleado" },
-  { id: "3", nombre: "Cliente Demo", email: "cliente@softcom.com", password: "cliente", role: "cliente" },
+  {
+    id: "1",
+    nombre: "Admin Demo",
+    email: "admin@softcom.mx",
+    password: "admin",
+    role: "admin",
+    // En BD: id_rol = 1 (admin)
+  },
+  {
+    id: "2",
+    nombre: "Carlos Montes",
+    email: "gerente@softcom.mx",
+    password: "gerente",
+    role: "gerente_cartera",
+    // En BD: id_rol = 2 (gerente_cartera), asignado a empresa via roles_empresa
+  },
+  {
+    id: "3",
+    nombre: "Analista Demo",
+    email: "analyst@softcom.mx",
+    password: "analyst",
+    role: "analyst",
+    // En BD: id_rol = 3 (analyst)
+  },
 ]
 
 export function AuthProvider({ children }: { children: ReactNode }) {

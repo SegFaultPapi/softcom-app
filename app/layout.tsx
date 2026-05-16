@@ -38,10 +38,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="bg-background">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      </head>
       <body className="font-sans antialiased">
         <AuthProvider>
           <NavBar />
-          <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+          <main>{children}</main>
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

@@ -15,7 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function ValuacionPage() {
   return (
-    <RouteGuard allowedRoles={["empleado", "cliente"]}>
+    <RouteGuard allowedRoles={["gerente_cartera", "analyst"]}>
       <ValuacionContent />
     </RouteGuard>
   )

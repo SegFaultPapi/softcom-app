@@ -54,8 +54,8 @@ type UsuarioRow = {
 
 const ROLE_LABEL: Record<Role, string> = {
   admin: "Administrador",
-  empleado: "Empleado",
-  cliente: "Cliente",
+  gerente_cartera: "Gerente de Cartera",
+  analyst: "Analista",
 }
 
 export default function AdminUsuariosPage() {
@@ -232,14 +232,14 @@ function UsuarioFormDialog({
 
             <Field>
               <FieldLabel htmlFor="u-rol">Rol</FieldLabel>
-              <Select defaultValue={usuario?.role ?? "cliente"}>
+              <Select defaultValue={usuario?.role ?? "analyst"}>
                 <SelectTrigger id="u-rol">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="empleado">Empleado</SelectItem>
-                  <SelectItem value="cliente">Cliente</SelectItem>
+                  <SelectItem value="gerente_cartera">Gerente de Cartera</SelectItem>
+                  <SelectItem value="analyst">Analista</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
