@@ -4,7 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { NavBar } from '@/components/nav-bar'
-import { DynamicProvider } from '@/components/dynamic-provider'
+import { AppPrivyProvider } from '@/components/dynamic-provider'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -45,12 +45,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="font-sans antialiased">
-        <DynamicProvider>
+        <AppPrivyProvider>
           <AuthProvider>
             <NavBar />
             <main>{children}</main>
           </AuthProvider>
-        </DynamicProvider>
+        </AppPrivyProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
