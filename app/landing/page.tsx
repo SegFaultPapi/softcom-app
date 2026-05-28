@@ -1,14 +1,686 @@
 "use client"
-// animations via globals.css: .anim-fade-up .anim-slide-l .anim-slide-r .anim-scale-in .delay-N
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import {
-  BarChart3, Shield, TrendingUp, Users, ChevronRight,
-  Menu, X, ChevronDown, ArrowRight, Star, Globe, Award,
-  BookOpen, PieChart, Activity
-} from "lucide-react"
+import { ChevronDown, ArrowRight, Menu, X, ChevronRight } from "lucide-react"
+
+// ─────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────
+const VISUAL_H = 188
+const VISUAL_PAD = "14px 18px"
+const VISUAL_BG = "linear-gradient(160deg, #0b1629 0%, #0d2347 100%)"
+
+// ─────────────────────────────────────────────────────────────
+// MOCK DASHBOARD — animated 3-screen hero visual
+// ─────────────────────────────────────────────────────────────
+
+function ScreenPortafolio() {
+  return (
+    <>
+      {/* KPI row */}
+      <div style={{ display: "flex", gap: 8, padding: "12px 16px 8px" }}>
+        {[
+          { label: "Capital Total", value: "$15.0M", color: "#00c2e0" },
+          { label: "Disponible",    value: "$3.0M",  color: "#3b82f6" },
+          { label: "Invertido",     value: "$12.0M", color: "#6366f1" },
+          { label: "P&L Total",     value: "+$83K",  color: "#22c55e" },
+        ].map((k) => (
+          <div key={k.label} style={{
+            flex: 1, background: "rgba(255,255,255,0.04)", borderRadius: 8,
+            padding: "8px 10px", borderLeft: `2px solid ${k.color}`,
+          }}>
+            <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>{k.label}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: k.color, fontFamily: "'IBM Plex Mono', monospace" }}>{k.value}</div>
+          </div>
+        ))}
+      </div>
+      {/* Charts + table */}
+      <div style={{ display: "flex", gap: 8, padding: "4px 16px 10px" }}>
+        {/* Donut */}
+        <div style={{
+          width: 120, background: "rgba(255,255,255,0.03)", borderRadius: 10,
+          padding: "8px 10px", flexShrink: 0,
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+        }}>
+          <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", alignSelf: "flex-start", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Distribución</div>
+          <div style={{ position: "relative", width: 60, height: 60 }}>
+            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "conic-gradient(#00c2e0 0% 80%, #3b82f6 80% 95%, #6366f1 95% 100%)" }} />
+            <div style={{
+              position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+              width: 30, height: 30, borderRadius: "50%", background: "#0b1629",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace" }}>80%</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+            {[["#00c2e0","CETES"],["#3b82f6","Bono M"]].map(([c, l]) => (
+              <div key={l} style={{ display: "flex", alignItems: "center", gap: 3 }}>
+                <div style={{ width: 6, height: 6, borderRadius: 2, background: c }} />
+                <span style={{ fontSize: 7.5, color: "rgba(255,255,255,0.45)" }}>{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Mini table */}
+        <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 10, overflow: "hidden" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 50px", padding: "6px 10px", background: "rgba(255,255,255,0.05)" }}>
+            {["Instrumento","Valor","P&L"].map(h => (
+              <span key={h} style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</span>
+            ))}
+          </div>
+          {[
+            { name: "CETES 28d",   valor: "$9.9M",  pl: "+$40K", c: "#22c55e" },
+            { name: "CETES 91d",   valor: "$4.9M",  pl: "+$65K", c: "#22c55e" },
+            { name: "Bono M 7%",   valor: "$1.9M",  pl: "+$34K", c: "#22c55e" },
+            { name: "Bono M 8.5%", valor: "$0.5M",  pl: "−$11K", c: "#ef4444" },
+          ].map((row, i) => (
+            <div key={i} style={{
+              display: "grid", gridTemplateColumns: "1fr 60px 50px", padding: "5px 10px",
+              borderTop: "1px solid rgba(255,255,255,0.04)",
+              background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
+            }}>
+              <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>{row.name}</span>
+              <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.4)", fontFamily: "'IBM Plex Mono', monospace" }}>{row.valor}</span>
+              <span style={{ fontSize: 8.5, color: row.c, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{row.pl}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
+
+function ScreenValuacion() {
+  return (
+    <div style={{ padding: "12px 16px 10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      {/* Form */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ fontSize: 7.5, color: "#00c2e0", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>CETES — Calculadora</div>
+        {[
+          { label: "Valor nominal", val: "10.0000", unit: "MXN" },
+          { label: "Tasa (r)", val: "11.25", unit: "%" },
+          { label: "Plazo", val: "91", unit: "días" },
+          { label: "Cantidad", val: "500,000", unit: "títulos" },
+        ].map(f => (
+          <div key={f.label}>
+            <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</div>
+            <div style={{
+              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 5, padding: "3px 8px",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <span style={{ fontSize: 9.5, color: "#fff", fontFamily: "'IBM Plex Mono', monospace" }}>{f.val}</span>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontFamily: "'IBM Plex Mono', monospace" }}>{f.unit}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Result */}
+      <div style={{
+        background: "rgba(0,194,224,0.06)", border: "1px solid rgba(0,194,224,0.2)",
+        borderRadius: 10, padding: "12px 14px",
+        display: "flex", flexDirection: "column", justifyContent: "center", gap: 4,
+      }}>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Precio unitario</div>
+        <div style={{ fontSize: 26, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.1 }}>$9.8534</div>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)" }}>Rendimiento: 1.490%</div>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)" }}>Descuento: $0.1466</div>
+        <div style={{ marginTop: 6, padding: "5px 8px", borderRadius: 5, background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)" }}>
+          <span style={{ fontSize: 8, color: "#22c55e", fontWeight: 700 }}>Total: $4,926,700.00 MXN</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ScreenOperaciones() {
+  return (
+    <div style={{ padding: "12px 16px 10px" }}>
+      <div style={{ display: "flex", gap: 0, marginBottom: 10 }}>
+        {["Compra","Venta"].map((t, i) => (
+          <div key={t} style={{
+            flex: 1, textAlign: "center", padding: "5px 0", fontSize: 9, fontWeight: 700,
+            background: i === 0 ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.08)",
+            color: i === 0 ? "#22c55e" : "#ef4444",
+            borderRadius: i === 0 ? "6px 0 0 6px" : "0 6px 6px 0",
+            borderBottom: i === 0 ? "2px solid #22c55e" : "2px solid transparent",
+          }}>{t}</div>
+        ))}
+      </div>
+      {[
+        { label: "Cliente", val: "Inversora del Norte SA" },
+        { label: "Instrumento", val: "CETES 91d" },
+        { label: "Precio unitario", val: "$9.8534 MXN" },
+        { label: "Cantidad", val: "100,000 títulos" },
+        { label: "Saldo disponible", val: "$3,000,000.00" },
+      ].map(r => (
+        <div key={r.label} style={{
+          display: "flex", justifyContent: "space-between", padding: "4px 0",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+        }}>
+          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)" }}>{r.label}</span>
+          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.75)", fontFamily: "'IBM Plex Mono', monospace" }}>{r.val}</span>
+        </div>
+      ))}
+      <div style={{
+        marginTop: 10, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)",
+        borderRadius: 6, padding: "6px 10px", display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.5)" }}>Importe total</span>
+        <span style={{ fontSize: 12, color: "#22c55e", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>$985,340.00</span>
+      </div>
+    </div>
+  )
+}
+
+function MockDashboard() {
+  const [screen, setScreen] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setScreen(s => (s + 1) % 3)
+        setVisible(true)
+      }, 360)
+    }, 3800)
+    return () => clearInterval(t)
+  }, [])
+
+  const tabs = ["Portafolio", "Valuación", "Operaciones"]
+
+  return (
+    <div style={{
+      background: "#0b1629",
+      borderRadius: 18,
+      border: "1px solid rgba(0,194,224,0.25)",
+      overflow: "hidden",
+      boxShadow: "0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,194,224,0.1)",
+      position: "relative",
+    }}>
+      {/* Window chrome */}
+      <div style={{
+        background: "linear-gradient(90deg,#060e1a,#0d2347)",
+        borderBottom: "1px solid rgba(0,194,224,0.12)",
+        padding: "10px 16px",
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <div style={{ display: "flex", gap: 5 }}>
+          {["#ef4444","#f59e0b","#22c55e"].map(c => (
+            <div key={c} style={{ width: 9, height: 9, borderRadius: "50%", background: c }} />
+          ))}
+        </div>
+        <div style={{ flex: 1, display: "flex", gap: 0, marginLeft: 8 }}>
+          {tabs.map((t, i) => (
+            <span key={t} style={{
+              fontSize: 10, fontWeight: 700, padding: "2px 12px 4px",
+              color: i === screen ? "#00c2e0" : "rgba(255,255,255,0.32)",
+              borderBottom: i === screen ? "2px solid #00c2e0" : "2px solid transparent",
+              transition: "color 0.35s ease, border-color 0.35s ease",
+              cursor: "default",
+            }}>{t}</span>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 4 }}>
+          {[36, 52, 28].map((w, i) => (
+            <div key={i} style={{ height: 5, width: w, borderRadius: 3, background: "rgba(255,255,255,0.1)" }} />
+          ))}
+        </div>
+      </div>
+
+      {/* Animated screen content */}
+      <div style={{
+        transition: "opacity 0.36s ease, transform 0.36s ease",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-10px)",
+        minHeight: 220,
+      }}>
+        {screen === 0 && <ScreenPortafolio />}
+        {screen === 1 && <ScreenValuacion />}
+        {screen === 2 && <ScreenOperaciones />}
+      </div>
+
+      {/* Indicator dots */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 5, padding: "10px 0 14px" }}>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{
+            height: 5, borderRadius: 3,
+            width: i === screen ? 20 : 6,
+            background: i === screen ? "#00c2e0" : "rgba(255,255,255,0.18)",
+            transition: "all 0.35s ease",
+          }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// FEATURE VISUALS — all same height VISUAL_H
+// ─────────────────────────────────────────────────────────────
+
+function wrap(content: React.ReactNode, extra?: React.CSSProperties) {
+  return (
+    <div style={{
+      background: VISUAL_BG,
+      borderRadius: "12px 12px 0 0",
+      padding: VISUAL_PAD,
+      height: VISUAL_H,
+      overflow: "hidden",
+      boxSizing: "border-box",
+      position: "relative",
+      ...extra,
+    }}>
+      {content}
+      <PlaceholderLabel />
+    </div>
+  )
+}
+
+function FeatureVisual({ type, color }: { type: string; color: string }) {
+  if (type === "valuacion") return wrap(
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, height: "100%" }}>
+      {/* Form */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ fontSize: 7.5, color: "#00c2e0", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>CETES</div>
+        {[
+          { label: "Valor nominal", val: "10.0000", unit: "MXN" },
+          { label: "Tasa (r)", val: "11.25", unit: "%" },
+          { label: "Plazo", val: "91", unit: "días" },
+        ].map(f => (
+          <div key={f.label}>
+            <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</div>
+            <div style={{
+              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 5, padding: "3px 7px",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+            }}>
+              <span style={{ fontSize: 9, color: "#fff", fontFamily: "'IBM Plex Mono', monospace" }}>{f.val}</span>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontFamily: "'IBM Plex Mono', monospace" }}>{f.unit}</span>
+            </div>
+          </div>
+        ))}
+        <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
+          {["28d","91d","182d","364d"].map(d => (
+            <div key={d} style={{
+              flex: 1, textAlign: "center", padding: "2px 0",
+              borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)",
+              fontSize: 7.5, color: "rgba(255,255,255,0.4)",
+            }}>{d}</div>
+          ))}
+        </div>
+      </div>
+      {/* Result */}
+      <div style={{
+        background: `${color}0d`, border: `1px solid ${color}30`,
+        borderRadius: 10, padding: "10px 12px",
+        display: "flex", flexDirection: "column", justifyContent: "center", gap: 3,
+      }}>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Precio unitario</div>
+        <div style={{ fontSize: 24, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.1 }}>$9.8534</div>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)" }}>Rend.: 1.490%</div>
+        <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+          {[["#22c55e","COMPRA"],["#ef4444","VENTA"]].map(([c, l]) => (
+            <div key={l} style={{ flex: 1, height: 20, borderRadius: 4, background: `${c}20`, border: `1px solid ${c}35`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 7.5, color: c, fontWeight: 700 }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
+  if (type === "portafolio") return wrap(
+    <div style={{ display: "flex", gap: 10, height: "100%", alignItems: "flex-end" }}>
+      {/* Bar chart */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%" }}>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>Valor por posición</div>
+        <div style={{ display: "flex", gap: 6, alignItems: "flex-end", flex: 1 }}>
+          {[
+            { label: "C28", h: 90, c: "#00c2e0" },
+            { label: "C91", h: 52, c: "#00c2e0" },
+            { label: "BM7", h: 20, c: "#3b82f6" },
+            { label: "BM8", h:  6, c: "#3b82f6" },
+          ].map(b => (
+            <div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, height: "100%" }}>
+              <div style={{ width: "100%", marginTop: "auto", borderRadius: "3px 3px 0 0", background: b.c, opacity: 0.85, height: `${b.h}%` }} />
+              <span style={{ fontSize: 7, color: "rgba(255,255,255,0.4)" }}>{b.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Donut + legend */}
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, paddingBottom: 16 }}>
+        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Mix</div>
+        <div style={{ position: "relative", width: 70, height: 70 }}>
+          <div style={{ width: 70, height: 70, borderRadius: "50%", background: "conic-gradient(#00c2e0 0% 80%, #3b82f6 80% 100%)" }} />
+          <div style={{
+            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+            width: 36, height: 36, borderRadius: "50%", background: "#0b1629",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <span style={{ fontSize: 9.5, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>80%</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {[["#00c2e0","CETES"],["#3b82f6","Bono M"]].map(([c, l]) => (
+            <div key={l} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ width: 7, height: 7, borderRadius: 2, background: c }} />
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+
+  if (type === "operaciones") return wrap(
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 0 }}>
+      <div style={{ display: "flex", gap: 0, marginBottom: 9 }}>
+        {["Compra","Venta"].map((t, i) => (
+          <div key={t} style={{
+            flex: 1, textAlign: "center", padding: "4px 0", fontSize: 8.5, fontWeight: 700,
+            background: i === 0 ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.1)",
+            color: i === 0 ? "#22c55e" : "#ef4444",
+            borderRadius: i === 0 ? "5px 0 0 5px" : "0 5px 5px 0",
+            borderBottom: i === 0 ? "2px solid #22c55e" : "2px solid transparent",
+          }}>{t}</div>
+        ))}
+      </div>
+      {[
+        { label: "Cliente", val: "Inversora del Norte SA" },
+        { label: "Instrumento", val: "CETES 91d" },
+        { label: "Precio unit.", val: "$9.8534 MXN" },
+        { label: "Cantidad", val: "100,000 títulos" },
+      ].map(r => (
+        <div key={r.label} style={{
+          display: "flex", justifyContent: "space-between", padding: "4px 0",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+        }}>
+          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)" }}>{r.label}</span>
+          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.75)", fontFamily: "'IBM Plex Mono', monospace" }}>{r.val}</span>
+        </div>
+      ))}
+      <div style={{
+        marginTop: "auto", background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)",
+        borderRadius: 6, padding: "5px 10px", display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <span style={{ fontSize: 8, color: "rgba(255,255,255,0.5)" }}>Importe total</span>
+        <span style={{ fontSize: 11, color: "#22c55e", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>$985,340.00</span>
+      </div>
+    </div>
+  )
+
+  if (type === "riesgos") return wrap(
+    <div style={{ display: "flex", flexDirection: "column", gap: 7, height: "100%", justifyContent: "center" }}>
+      <div style={{ fontSize: 7.5, color: color, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Monitor de alertas activas</div>
+      {[
+        { level: "CRÍTICA", label: "Vencimiento próximo — CETES 28d",    color: "#ef4444" },
+        { level: "MEDIA",   label: "VaR excede límite del 2%",           color: "#f59e0b" },
+        { level: "BAJA",    label: "Concentración alta en CETES",        color: "#3b82f6" },
+        { level: "INFO",    label: "Actualización de tasa Banxico",      color: "#22c55e" },
+      ].map((a) => (
+        <div key={a.label} style={{
+          display: "flex", alignItems: "center", gap: 8, padding: "5px 10px",
+          background: `${a.color}0d`, border: `1px solid ${a.color}25`, borderRadius: 6,
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: a.color, flexShrink: 0 }} />
+          <span style={{ fontSize: 7.5, color: a.color, fontWeight: 700, marginRight: 4 }}>{a.level}</span>
+          <span style={{ fontSize: 7.5, color: "rgba(255,255,255,0.5)" }}>{a.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+
+  if (type === "financiero") return wrap(
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 0 }}>
+      <div style={{ fontSize: 7.5, color: color, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Balance General</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 20px 1fr", gap: 4, flex: 1 }}>
+        {/* Activos */}
+        <div>
+          <div style={{ fontSize: 7.5, color: "#00c2e0", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 5 }}>Activos</div>
+          {[["Inversiones","$12.0M"],["Efectivo","$3.0M"],["Otros","$0.2M"]].map(([k, v]) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{k}</span>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.75)", fontFamily: "'IBM Plex Mono', monospace" }}>{v}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderTop: "1px solid rgba(0,194,224,0.3)", marginTop: 3 }}>
+            <span style={{ fontSize: 8.5, color: "#00c2e0", fontWeight: 700 }}>Total</span>
+            <span style={{ fontSize: 8.5, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>$15.2M</span>
+          </div>
+        </div>
+        {/* = separator */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3 }}>
+          <div style={{ width: 12, height: 2, background: "rgba(255,255,255,0.2)", borderRadius: 1 }} />
+          <div style={{ width: 12, height: 2, background: "rgba(255,255,255,0.2)", borderRadius: 1 }} />
+        </div>
+        {/* Pasivo + Capital */}
+        <div>
+          <div style={{ fontSize: 7.5, color: "#3b82f6", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 5 }}>Pasivo + Capital</div>
+          {[["Deuda","$2.5M"],["Capital","$12.7M"]].map(([k, v]) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.45)" }}>{k}</span>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.75)", fontFamily: "'IBM Plex Mono', monospace" }}>{v}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderTop: "1px solid rgba(59,130,246,0.3)", marginTop: 3 }}>
+            <span style={{ fontSize: 8.5, color: "#3b82f6", fontWeight: 700 }}>Total</span>
+            <span style={{ fontSize: 8.5, color: "#3b82f6", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>$15.2M</span>
+          </div>
+        </div>
+      </div>
+      {/* ROE/Liquidez indicators */}
+      <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+        {[["ROE","8.2%","#22c55e"],["Liq.","1.44","#00c2e0"],["Solv.","6.1x","#3b82f6"]].map(([k,v,c]) => (
+          <div key={k} style={{ flex: 1, background: `${c}10`, borderRadius: 5, padding: "3px 6px", border: `1px solid ${c}25` }}>
+            <div style={{ fontSize: 7, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>{k}</div>
+            <div style={{ fontSize: 9.5, color: c, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>{v}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  // multiempresa
+  return wrap(
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 0 }}>
+      <div style={{ fontSize: 7.5, color: color, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Empresas cliente</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+        {[
+          { nombre: "Inversora del Norte SA",  rol: "Gerente",  color: "#3b82f6" },
+          { nombre: "Fondo Bajío Capital",     rol: "Analista", color: "#00c2e0" },
+          { nombre: "Corporativo Noreste SA",  rol: "Admin",    color: "#a855f7" },
+          { nombre: "Grupo Financiero Norte",  rol: "Analista", color: "#00c2e0" },
+        ].map((u) => (
+          <div key={u.nombre} style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "5px 10px", background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.07)", borderRadius: 7,
+          }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: `${u.color}20`, border: `1px solid ${u.color}35`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 8.5, fontWeight: 800, color: u.color, flexShrink: 0,
+            }}>
+              {u.nombre[0]}
+            </div>
+            <span style={{ flex: 1, fontSize: 8.5, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{u.nombre}</span>
+            <span style={{
+              fontSize: 7.5, fontWeight: 700, color: u.color,
+              background: `${u.color}15`, padding: "2px 6px", borderRadius: 10,
+              border: `1px solid ${u.color}30`,
+            }}>{u.rol}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// NEWS THUMBNAIL
+// ─────────────────────────────────────────────────────────────
+
+function NewsThumbnail({ index }: { index: number }) {
+  const palettes = [
+    { from: "#0b1629", to: "#0d3060", accent: "#00c2e0" },
+    { from: "#0b1629", to: "#1a1060", accent: "#3b82f6" },
+    { from: "#0b1629", to: "#0a2810", accent: "#22c55e" },
+  ]
+  const p = palettes[index % 3]
+  const points = [70, 55, 75, 60, 80, 65, 85, 70, 90, 78]
+
+  return (
+    <div style={{
+      width: 88, height: 68, flexShrink: 0, borderRadius: 10, overflow: "hidden",
+      background: `linear-gradient(135deg, ${p.from}, ${p.to})`,
+      border: "1px solid rgba(255,255,255,0.08)", position: "relative",
+    }}>
+      <svg width="88" height="68" style={{ position: "absolute", inset: 0 }}>
+        <polyline
+          points={points.map((y, x) => `${6 + x * 8.5},${60 - y * 0.5}`).join(" ")}
+          fill="none" stroke={p.accent} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity={0.75}
+        />
+        <polyline
+          points={[
+            ...points.map((y, x) => `${6 + x * 8.5},${60 - y * 0.5}`),
+            `${6 + (points.length - 1) * 8.5},68`, `6,68`
+          ].join(" ")}
+          fill={`${p.accent}18`} stroke="none"
+        />
+        {points.map((y, x) => (
+          <circle key={x} cx={6 + x * 8.5} cy={60 - y * 0.5} r={x === points.length - 1 ? 3 : 1.5}
+            fill={x === points.length - 1 ? p.accent : `${p.accent}70`} />
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// CTA MINI PREVIEWS
+// ─────────────────────────────────────────────────────────────
+
+function CtaFeaturePreviews() {
+  const previews = [
+    {
+      label: "Valuación en vivo",
+      accent: "#00c2e0",
+      content: (
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>CETES 91d</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace" }}>$9.8534</div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)" }}>Rendimiento: 1.49%</div>
+          <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+            {[["COMPRA","#22c55e"],["VENTA","#ef4444"]].map(([t, c]) => (
+              <div key={t} style={{
+                flex: 1, padding: "4px 0", borderRadius: 4, textAlign: "center",
+                background: `${c}20`, border: `1px solid ${c}35`,
+              }}>
+                <span style={{ fontSize: 7.5, fontWeight: 700, color: c }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: "Dashboard integral",
+      accent: "#3b82f6",
+      content: (
+        <div>
+          <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+            {[["$15M","Total","#00c2e0"],["$3M","Disp.","#3b82f6"],["$12M","Inv.","#6366f1"]].map(([v, l, c]) => (
+              <div key={l} style={{ flex: 1, background: `${c}12`, borderRadius: 5, padding: "5px 6px", borderLeft: `2px solid ${c}` }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: c, fontFamily: "'IBM Plex Mono', monospace" }}>{v}</div>
+                <div style={{ fontSize: 7, color: "rgba(255,255,255,0.35)" }}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 3, alignItems: "flex-end", height: 36 }}>
+            {[60,72,58,80,68,90,75,88,82,95].map((h, i) => (
+              <div key={i} style={{
+                flex: 1, borderRadius: "2px 2px 0 0",
+                background: i === 9 ? "#3b82f6" : `rgba(59,130,246,${0.2 + i/10 * 0.5})`,
+                height: `${h}%`,
+              }} />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: "Trazabilidad total",
+      accent: "#22c55e",
+      content: (
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          {[
+            { id: "OP-2847", tipo: "COMPRA", val: "$985K",  c: "#22c55e" },
+            { id: "OP-2846", tipo: "VENTA",  val: "$201K",  c: "#ef4444" },
+            { id: "OP-2845", tipo: "COMPRA", val: "$1.9M",  c: "#22c55e" },
+          ].map(op => (
+            <div key={op.id} style={{
+              display: "flex", gap: 6, alignItems: "center", padding: "4px 8px",
+              background: "rgba(255,255,255,0.04)", borderRadius: 5,
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <span style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", fontFamily: "'IBM Plex Mono', monospace" }}>{op.id}</span>
+              <span style={{ fontSize: 7.5, fontWeight: 700, color: op.c, flex: 1 }}>{op.tipo}</span>
+              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.6)", fontFamily: "'IBM Plex Mono', monospace" }}>{op.val}</span>
+            </div>
+          ))}
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
+            <span style={{ fontSize: 8, color: "rgba(255,255,255,0.4)" }}>Log inmutable · auditable</span>
+          </div>
+        </div>
+      ),
+    },
+  ]
+
+  return (
+    <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+      {previews.map(p => (
+        <div key={p.label} style={{
+          width: 220, background: "rgba(255,255,255,0.04)",
+          border: `1px solid ${p.accent}30`,
+          borderRadius: 14, overflow: "hidden",
+        }}>
+          <div style={{ padding: "14px 16px", background: "rgba(255,255,255,0.03)", borderBottom: `1px solid ${p.accent}20` }}>
+            {p.content}
+          </div>
+          <div style={{ padding: "9px 16px", display: "flex", alignItems: "center", gap: 7 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: p.accent }} />
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", fontWeight: 600 }}>{p.label}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Tiny PLACEHOLDER watermark inside feature visuals */
+function PlaceholderLabel() {
+  return (
+    <div style={{
+      position: "absolute", bottom: 4, right: 8,
+      fontSize: 7, color: "rgba(255,255,255,0.12)",
+      fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.08em", userSelect: "none",
+    }}>
+      PLACEHOLDER
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────────────────────
 
 const SLIDES = [
   {
@@ -22,8 +694,8 @@ const SLIDES = [
   {
     tag: "Análisis Avanzado",
     title: "Valuación de Instrumentos de Deuda",
-    desc: "Calcula precios, duraciones y sensibilidades de bonos gubernamentales y corporativos con modelos actuariales certificados.",
-    cta: "Ver Módulo",
+    desc: "Calcula precios, duraciones y sensibilidades de bonos gubernamentales con modelos actuariales certificados.",
+    cta: "Ver Módulo de Valuación",
     href: "/login",
     accent: "#3b82f6",
   },
@@ -38,26 +710,30 @@ const SLIDES = [
 ]
 
 const SERVICES = [
-  { icon: BarChart3,  title: "Valuación de Bonos",        desc: "Precio limpio, precio sucio, interés corrido, duration y duration modificada para CETES, Bonos M y UDIBONOS.", color: "#00c2e0" },
-  { icon: PieChart,   title: "Gestión de Portafolio",    desc: "Posiciones por empresa cliente: cantidad de títulos, precio promedio, valor de mercado y VaR (Value at Risk).", color: "#3b82f6" },
-  { icon: TrendingUp, title: "Operaciones",               desc: "Registro de transacciones: compra, venta, pago de cupón y derivados con trazabilidad completa.", color: "#22c55e" },
-  { icon: Shield,     title: "Gestión de Riesgos",        desc: "Alertas automáticas: riesgo de mercado, crédito, liquidez, vencimientos próximos y límites de presupuesto.", color: "#ef4444" },
-  { icon: Activity,   title: "Estados Financieros",       desc: "Balance general (Activo=Pasivo+Capital), estado de resultados e indicadores ROE, liquidez y solvencia.", color: "#6366f1" },
-  { icon: Users,      title: "Multi-empresa",             desc: "Cada empresa cliente tiene su portafolio, usuarios asignados con roles diferenciados y reportes propios.", color: "#f59e0b" },
+  { type: "valuacion",    title: "Valuación de Bonos",        desc: "Precio limpio, precio sucio, duration y rendimiento. CETES, Bonos M y UDIBONOS con actualización en tiempo real.", color: "#00c2e0" },
+  { type: "portafolio",   title: "Gestión de Portafolio",     desc: "Posiciones por empresa: cantidad de títulos, precio promedio, valor de mercado, VaR y P&L actualizado.", color: "#3b82f6" },
+  { type: "operaciones",  title: "Compra y Venta",            desc: "Registro de transacciones con trazabilidad completa e inmutable. Log auditabl con timestamps y usuario ejecutor.", color: "#22c55e" },
+  { type: "riesgos",      title: "Gestión de Riesgos",        desc: "Alertas automáticas de riesgo de mercado, crédito, liquidez, vencimientos próximos y límites de presupuesto.", color: "#ef4444" },
+  { type: "financiero",   title: "Estados Financieros",       desc: "Balance general (Activo = Pasivo + Capital), estado de resultados e indicadores ROE, liquidez y solvencia.", color: "#6366f1" },
+  { type: "multiempresa", title: "Multi-empresa",             desc: "Cada empresa cliente tiene su portafolio independiente, usuarios con roles diferenciados y reportes propios.", color: "#f59e0b" },
 ]
 
 const STATS = [
-  { value: "8+",    label: "Empresas cliente gestionadas" },
-  { value: "47+",   label: "Instrumentos en catálogo" },
-  { value: "99.9%", label: "Disponibilidad del sistema" },
-  { value: "14",    label: "Módulos del modelo relacional" },
+  { value: "8+",    label: "Empresas cliente gestionadas", color: "#00c2e0" },
+  { value: "47+",   label: "Instrumentos en catálogo",     color: "#3b82f6" },
+  { value: "99.9%", label: "Disponibilidad del sistema",   color: "#22c55e" },
+  { value: "14",    label: "Módulos del modelo relacional", color: "#6366f1" },
 ]
 
 const NEWS = [
-  { date: "May 9, 2026",  title: "Soporte para UDIBONOS y bonos con tasa variable", desc: "El módulo de valuación ahora calcula precios ajustados por INPC y soporta bonos referenciados a TIIE para portafolios corporativos." },
-  { date: "Abr 25, 2026", title: "Nuevas alertas automáticas de riesgo", desc: "El sistema genera alertas de riesgo de mercado, crédito y vencimientos próximos directamente desde el portafolio de la empresa." },
-  { date: "Abr 10, 2026", title: "Módulo de estados financieros y anualidades", desc: "Balance general con constraint Activo=Pasivo+Capital, estado de resultados y cálculo de valor presente/futuro de anualidades." },
+  { date: "9 mayo 2026",  title: "Soporte para UDIBONOS y bonos con tasa variable", desc: "El módulo de valuación ahora calcula precios ajustados por INPC y soporta bonos referenciados a TIIE." },
+  { date: "25 abr 2026", title: "Nuevas alertas automáticas de riesgo", desc: "El sistema genera alertas de riesgo de mercado, crédito y vencimientos próximos desde el portafolio." },
+  { date: "10 abr 2026", title: "Módulo de estados financieros y anualidades", desc: "Balance con constraint Activo=Pasivo+Capital, estado de resultados y cálculo de valor presente/futuro." },
 ]
+
+// ─────────────────────────────────────────────────────────────
+// PAGE
+// ─────────────────────────────────────────────────────────────
 
 export default function LandingPage() {
   const [slide, setSlide] = useState(0)
@@ -65,194 +741,223 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 5000)
+    const t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 5000)
     return () => clearInterval(t)
   }, [])
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", onScroll)
-    return () => window.removeEventListener("scroll", onScroll)
+    const fn = () => setScrolled(window.scrollY > 20)
+    window.addEventListener("scroll", fn)
+    return () => window.removeEventListener("scroll", fn)
   }, [])
 
   const s = SLIDES[slide]
 
   return (
-    <div style={{ fontFamily: "'Inter', 'Geist', sans-serif", background: "#f0f4f8", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#f0f4f8", minHeight: "100vh" }}>
 
       {/* ── NAVBAR ── */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-        background: scrolled ? "rgba(11,22,41,0.97)" : "rgba(11,22,41,0.85)",
-        backdropFilter: "blur(12px)",
-        borderBottom: scrolled ? "1px solid rgba(0,194,224,0.2)" : "none",
+        background: scrolled ? "rgba(11,22,41,0.98)" : "rgba(11,22,41,0.88)",
+        backdropFilter: "blur(14px)",
+        borderBottom: scrolled ? "1px solid rgba(0,194,224,0.18)" : "none",
+        boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.25)" : "none",
         transition: "all 0.3s ease",
       }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", gap: 32 }}>
           <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-            <Image
-              src="/SOFTCOM_LOGO.png"
-              alt="SOFTCOM Solutions"
-              width={160}
-              height={48}
-              style={{ objectFit: "contain", height: 40, width: "auto" }}
-              priority
-            />
+            <Image src="/SOFTCOM_LOGO.png" alt="SOFTCOM Solutions" width={160} height={48}
+              style={{ objectFit: "contain", height: 40, width: "auto" }} priority />
           </Link>
 
-          <nav style={{ display: "flex", gap: 4, marginLeft: 16 }} className="desktop-nav">
-            {["Servicios", "Plataforma", "Análisis", "Clientes", "Acerca de"].map((item) => (
+          <nav style={{ display: "flex", gap: 2, marginLeft: 8 }} className="hidden md:flex">
+            {["Servicios","Plataforma","Análisis","Clientes"].map(item => (
               <button key={item} style={{
-                background: "none", border: "none", color: "rgba(255,255,255,0.75)",
-                fontSize: 14, padding: "8px 14px", borderRadius: 6, cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 4, transition: "all 0.2s",
+                background: "none", border: "none", color: "rgba(255,255,255,0.7)",
+                fontSize: 14, fontFamily: "'DM Sans', sans-serif",
+                padding: "8px 14px", borderRadius: 6, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 4, transition: "all 0.18s",
               }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#fff"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.08)" }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.75)"; (e.currentTarget as HTMLButtonElement).style.background = "none" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; (e.currentTarget as HTMLButtonElement).style.background = "none" }}
               >
                 {item} <ChevronDown size={12} />
               </button>
             ))}
           </nav>
 
-          <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
             <Link href="/login" style={{
-              color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, padding: "8px 16px",
-              borderRadius: 6, border: "1px solid rgba(255,255,255,0.2)",
-              transition: "all 0.2s",
-            }}>
+              color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 14,
+              padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.18)",
+              transition: "all 0.18s", fontWeight: 500,
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#fff"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.75)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.18)" }}
+            >
               Iniciar Sesión
             </Link>
             <Link href="/login" style={{
               background: "linear-gradient(135deg, #00c2e0, #0099b8)",
-              color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 600,
-              padding: "8px 20px", borderRadius: 6,
+              color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700,
+              padding: "9px 22px", borderRadius: 7,
               boxShadow: "0 4px 14px rgba(0,194,224,0.35)",
             }}>
               Acceder
             </Link>
+            <button className="md:hidden" onClick={() => setMenuOpen(o => !o)} style={{
+              background: "none", border: "none", color: "#fff", cursor: "pointer",
+            }}>
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
       </header>
 
-      {/* ── HERO CAROUSEL ── */}
+      {/* ── HERO ── */}
       <section style={{
         minHeight: "92vh", paddingTop: 68,
         background: "linear-gradient(135deg, #0b1629 0%, #0d2347 40%, #0a1f3d 70%, #061428 100%)",
         position: "relative", overflow: "hidden",
         display: "flex", alignItems: "center",
       }}>
-        {/* Background grid */}
+        {/* Grid */}
         <div style={{
-          position: "absolute", inset: 0, opacity: 0.06,
+          position: "absolute", inset: 0, opacity: 0.045,
           backgroundImage: "linear-gradient(rgba(0,194,224,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,194,224,1) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
         }} />
-        {/* Glow orbs */}
-        <div style={{ position: "absolute", top: "20%", right: "15%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,194,224,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "10%", left: "5%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(26,58,107,0.4) 0%, transparent 70%)", pointerEvents: "none" }} />
+        {/* Glows */}
+        <div style={{ position: "absolute", top: "5%", right: "6%", width: 520, height: 520, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,194,224,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "8%", left: "0%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(26,58,107,0.25) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px", position: "relative", zIndex: 1, width: "100%" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-            {/* Text side */}
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "72px 24px", position: "relative", zIndex: 1, width: "100%" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 64, alignItems: "center" }}>
+
+            {/* Text */}
             <div>
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: 8,
-                background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.3)",
-                borderRadius: 20, padding: "6px 16px", marginBottom: 24,
+                background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.28)",
+                borderRadius: 20, padding: "5px 16px", marginBottom: 22,
               }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.accent }} />
-                <span style={{ color: "#00c2e0", fontSize: 12, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>{s.tag}</span>
+                <div style={{
+                  width: 6, height: 6, borderRadius: "50%", background: s.accent,
+                  boxShadow: `0 0 8px ${s.accent}`, transition: "background 0.4s",
+                }} />
+                <span style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  {s.tag}
+                </span>
               </div>
 
-              <h1 className="anim-fade-up delay-2" style={{
-                color: "#fff", fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 800,
-                lineHeight: 1.15, marginBottom: 20, letterSpacing: -0.5,
+              <h1 className="anim-fade-up delay-2 sc-display-font" style={{
+                color: "#fff", fontSize: "clamp(28px, 3.4vw, 48px)", fontWeight: 800,
+                lineHeight: 1.13, marginBottom: 18, letterSpacing: -0.5,
               }}>
                 {s.title}
               </h1>
-              <p className="anim-fade-up delay-3" style={{ color: "rgba(255,255,255,0.65)", fontSize: 17, lineHeight: 1.7, marginBottom: 36, maxWidth: 480 }}>
+              <p className="anim-fade-up delay-3" style={{
+                color: "rgba(255,255,255,0.58)", fontSize: 16, lineHeight: 1.75,
+                marginBottom: 36, maxWidth: 450,
+              }}>
                 {s.desc}
               </p>
 
-              <div className="anim-fade-up delay-4" style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <div className="anim-fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <Link href={s.href} style={{
                   background: "linear-gradient(135deg, #00c2e0, #0099b8)",
                   color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 15,
-                  padding: "14px 28px", borderRadius: 8,
-                  boxShadow: "0 6px 20px rgba(0,194,224,0.4)",
-                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "13px 26px", borderRadius: 9,
+                  boxShadow: "0 6px 22px rgba(0,194,224,0.38)",
+                  display: "flex", alignItems: "center", gap: 8, transition: "all 0.18s",
                 }}>
                   {s.cta} <ArrowRight size={16} />
                 </Link>
-                <button style={{
-                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)",
-                  color: "#fff", fontSize: 15, fontWeight: 600,
-                  padding: "14px 28px", borderRadius: 8, cursor: "pointer",
+                <Link href="/login" style={{
+                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+                  color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600,
+                  padding: "13px 26px", borderRadius: 9, textDecoration: "none",
+                  transition: "all 0.18s",
                 }}>
-                  Conocer más
-                </button>
+                  Ver demo
+                </Link>
               </div>
 
-              {/* Slide indicators */}
-              <div className="anim-fade-up delay-5" style={{ display: "flex", gap: 8, marginTop: 40 }}>
+              {/* Slide indicator dots */}
+              <div className="anim-fade-up delay-5" style={{ display: "flex", gap: 8, marginTop: 36 }}>
                 {SLIDES.map((_, i) => (
                   <button key={i} onClick={() => setSlide(i)} style={{
-                    width: i === slide ? 28 : 8, height: 8,
-                    borderRadius: 4, border: "none", cursor: "pointer",
-                    background: i === slide ? "#00c2e0" : "rgba(255,255,255,0.25)",
+                    width: i === slide ? 28 : 7, height: 7, borderRadius: 4, border: "none",
+                    cursor: "pointer",
+                    background: i === slide ? "#00c2e0" : "rgba(255,255,255,0.2)",
                     transition: "all 0.3s ease",
                   }} />
                 ))}
               </div>
             </div>
 
-            {/* Stats card side */}
-            <div className="anim-slide-r delay-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              {STATS.map((stat, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 16, padding: "28px 24px",
-                  backdropFilter: "blur(10px)",
-                }}>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: "#00c2e0", marginBottom: 6 }}>{stat.value}</div>
-                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}>{stat.label}</div>
-                </div>
-              ))}
+            {/* Animated mock dashboard */}
+            <div className="anim-slide-r delay-2">
+              <MockDashboard />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── SERVICIOS GRID ── */}
-      <section style={{ background: "#fff", padding: "80px 0" }}>
+      {/* ── STATS STRIP ── */}
+      <section style={{
+        background: "#0d2347",
+        padding: "36px 0",
+        borderTop: "1px solid rgba(0,194,224,0.12)",
+        borderBottom: "1px solid rgba(0,194,224,0.12)",
+      }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0 }}>
+            {STATS.map((stat, i) => (
+              <div key={i} style={{
+                textAlign: "center", padding: "8px 0",
+                borderRight: i < STATS.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
+              }}>
+                <div className="sc-number" style={{ fontSize: 34, fontWeight: 700, color: stat.color, lineHeight: 1.1 }}>{stat.value}</div>
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 12.5, marginTop: 5 }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SERVICIOS ── */}
+      <section style={{ background: "#fff", padding: "88px 0" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div className="anim-fade-up" style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+            <div style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>
               Módulos del Sistema
             </div>
-            <h2 style={{ fontSize: 38, fontWeight: 800, color: "#0b1629", marginBottom: 14 }}>
+            <h2 className="sc-display-font" style={{ fontSize: 36, fontWeight: 800, color: "#0b1629", marginBottom: 14 }}>
               Herramientas Financieras Especializadas
             </h2>
-            <p style={{ color: "#64748b", fontSize: 17, maxWidth: 540, margin: "0 auto" }}>
+            <p style={{ color: "#64748b", fontSize: 16, maxWidth: 500, margin: "0 auto", lineHeight: 1.7 }}>
               Una suite completa para la gestión profesional de instrumentos de renta fija y portafolios de inversión.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
             {SERVICES.map((svc, i) => {
-              const Icon = svc.icon
               const delays = ["delay-1","delay-2","delay-3","delay-4","delay-5","delay-6"]
               return (
-                <div key={i} className={`anim-fade-up ${delays[i]}`} style={{
-                  background: "#f8fafc", borderRadius: 16, padding: "32px 28px",
-                  border: "1px solid #e2e8f0", cursor: "pointer",
-                  transition: "all 0.3s ease",
-                }}
+                <div
+                  key={i}
+                  className={`anim-fade-up ${delays[i]}`}
+                  style={{
+                    background: "#f8fafc", borderRadius: 16,
+                    border: "1px solid #e2e8f0", overflow: "hidden",
+                    cursor: "pointer", transition: "all 0.25s ease",
+                  }}
                   onMouseEnter={e => {
                     const el = e.currentTarget as HTMLDivElement
                     el.style.transform = "translateY(-4px)"
-                    el.style.boxShadow = `0 12px 32px rgba(0,0,0,0.1)`
+                    el.style.boxShadow = `0 14px 36px rgba(0,0,0,0.09)`
                     el.style.borderColor = svc.color
                   }}
                   onMouseLeave={e => {
@@ -262,18 +967,23 @@ export default function LandingPage() {
                     el.style.borderColor = "#e2e8f0"
                   }}
                 >
-                  <div style={{
-                    width: 52, height: 52, borderRadius: 12,
-                    background: `${svc.color}18`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    marginBottom: 20,
-                  }}>
-                    <Icon size={24} color={svc.color} />
-                  </div>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0b1629", marginBottom: 10 }}>{svc.title}</h3>
-                  <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>{svc.desc}</p>
-                  <div className="anim-fade-up delay-1" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: svc.color, fontSize: 13, fontWeight: 600 }}>
-                    Explorar <ChevronRight size={14} />
+                  {/* Visual header — uniform height via FeatureVisual */}
+                  <FeatureVisual type={svc.type} color={svc.color} />
+
+                  {/* Card body */}
+                  <div style={{ padding: "20px 22px" }}>
+                    <div style={{
+                      display: "inline-block", width: 6, height: 6, borderRadius: "50%",
+                      background: svc.color, marginBottom: 9,
+                      boxShadow: `0 0 8px ${svc.color}60`,
+                    }} />
+                    <h3 className="sc-display-font" style={{ fontSize: 16, fontWeight: 700, color: "#0b1629", marginBottom: 7 }}>
+                      {svc.title}
+                    </h3>
+                    <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.65, marginBottom: 14 }}>{svc.desc}</p>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: svc.color, fontSize: 13, fontWeight: 700 }}>
+                      Explorar módulo <ChevronRight size={13} />
+                    </div>
                   </div>
                 </div>
               )
@@ -282,99 +992,112 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── NOTICIAS + ACCESO RÁPIDO ── */}
-      <section style={{ background: "#f0f4f8", padding: "80px 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "grid", gridTemplateColumns: "2fr 1fr", gap: 40 }}>
+      {/* ── NOTICIAS ── */}
+      <section style={{ background: "#f0f4f8", padding: "88px 0" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 52, alignItems: "start" }}>
 
-          {/* News */}
-          <div className="anim-slide-l">
-            <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>Novedades</div>
-            <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0b1629", marginBottom: 32 }}>Actualizaciones del Sistema</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {NEWS.map((n, i) => {
-                const nd = ["delay-2","delay-3","delay-4"][i]
-                return (
-                <div key={i} className={`anim-fade-up ${nd}`} style={{
-                  background: "#fff", borderRadius: 12, padding: "24px 28px",
-                  border: "1px solid #e2e8f0", display: "flex", gap: 20, alignItems: "flex-start",
-                }}>
-                  <div style={{
-                    width: 4, borderRadius: 2, alignSelf: "stretch", minHeight: 60,
-                    background: i === 0 ? "#00c2e0" : i === 1 ? "#3b82f6" : "#22c55e", flexShrink: 0,
-                  }} />
-                  <div>
-                    <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 6 }}>{n.date}</div>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0b1629", marginBottom: 8 }}>{n.title}</h3>
-                    <p style={{ color: "#64748b", fontSize: 14, lineHeight: 1.6 }}>{n.desc}</p>
-                  </div>
-                </div>
-              )})}
-            </div>
-          </div>
-
-          {/* Quick access */}
-          <div className="anim-slide-r delay-1">
-            <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>Acceso Rápido</div>
-            <h2 style={{ fontSize: 28, fontWeight: 800, color: "#0b1629", marginBottom: 32 }}>Módulos</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {[
-                { label: "Dashboard Principal", href: "/dashboard", icon: BarChart3, color: "#00c2e0" },
-                { label: "Valuación", href: "/valuacion", icon: TrendingUp, color: "#3b82f6" },
-                { label: "Mi Portafolio", href: "/portafolio", icon: PieChart, color: "#22c55e" },
-                { label: "Operaciones", href: "/operaciones", icon: Activity, color: "#a855f7" },
-                { label: "Administración", href: "/admin/usuarios", icon: Users, color: "#f59e0b" },
-              ].map((item, i) => {
-                const Icon = item.icon
-                return (
-                  <Link key={i} href={item.href} style={{
-                    background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10,
-                    padding: "16px 20px", textDecoration: "none",
-                    display: "flex", alignItems: "center", gap: 14,
-                    transition: "all 0.2s",
+            {/* News */}
+            <div className="anim-slide-l">
+              <div style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Novedades</div>
+              <h2 className="sc-display-font" style={{ fontSize: 28, fontWeight: 800, color: "#0b1629", marginBottom: 32 }}>
+                Actualizaciones del Sistema
+              </h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {NEWS.map((n, i) => (
+                  <div key={i} className={`anim-fade-up delay-${i+2}`} style={{
+                    background: "#fff", borderRadius: 14, padding: "18px 22px",
+                    border: "1px solid #e2e8f0",
+                    display: "flex", gap: 16, alignItems: "flex-start",
+                    transition: "all 0.2s ease", cursor: "pointer",
                   }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = item.color; (e.currentTarget as HTMLAnchorElement).style.transform = "translateX(4px)" }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateX(0)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "#00c2e0"; (e.currentTarget as HTMLDivElement).style.boxShadow = "0 6px 20px rgba(0,194,224,0.08)" }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none" }}
                   >
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: `${item.color}18`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Icon size={18} color={item.color} />
+                    <NewsThumbnail index={i} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 5, fontWeight: 500 }}>{n.date}</div>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0b1629", marginBottom: 5, lineHeight: 1.4 }}>{n.title}</h3>
+                      <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.6, margin: 0 }}>{n.desc}</p>
                     </div>
-                    <span style={{ color: "#0b1629", fontWeight: 600, fontSize: 14 }}>{item.label}</span>
-                    <ChevronRight size={14} color="#94a3b8" style={{ marginLeft: "auto" }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick access */}
+            <div className="anim-slide-r delay-1">
+              <div style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Acceso Rápido</div>
+              <h2 className="sc-display-font" style={{ fontSize: 28, fontWeight: 800, color: "#0b1629", marginBottom: 32 }}>Módulos</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                {[
+                  { label: "Dashboard Principal", href: "/dashboard",      accent: "#00c2e0", symbol: "▤" },
+                  { label: "Valuación",           href: "/valuacion",      accent: "#3b82f6", symbol: "≈" },
+                  { label: "Mi Portafolio",       href: "/portafolio",     accent: "#22c55e", symbol: "◎" },
+                  { label: "Operaciones",         href: "/operaciones",    accent: "#a855f7", symbol: "⇄" },
+                  { label: "Administración",      href: "/admin/usuarios", accent: "#f59e0b", symbol: "⊞" },
+                ].map((item) => (
+                  <Link key={item.label} href={item.href} style={{
+                    background: "#fff", border: "1px solid #e2e8f0", borderRadius: 11,
+                    padding: "12px 16px", textDecoration: "none",
+                    display: "flex", alignItems: "center", gap: 12,
+                    transition: "all 0.18s",
+                  }}
+                    onMouseEnter={e => {
+                      const el = e.currentTarget as HTMLAnchorElement
+                      el.style.borderColor = item.accent
+                      el.style.transform = "translateX(4px)"
+                      el.style.boxShadow = `0 4px 14px ${item.accent}18`
+                    }}
+                    onMouseLeave={e => {
+                      const el = e.currentTarget as HTMLAnchorElement
+                      el.style.borderColor = "#e2e8f0"
+                      el.style.transform = "translateX(0)"
+                      el.style.boxShadow = "none"
+                    }}
+                  >
+                    <div style={{
+                      width: 38, height: 38, borderRadius: 9, flexShrink: 0,
+                      background: "linear-gradient(135deg, #0b1629, #0d2347)",
+                      border: `1px solid ${item.accent}35`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 17, color: item.accent,
+                    }}>
+                      {item.symbol}
+                    </div>
+                    <span style={{ color: "#0b1629", fontWeight: 600, fontSize: 13.5, flex: 1 }}>{item.label}</span>
+                    <ChevronRight size={14} color="#94a3b8" />
                   </Link>
-                )
-              })}
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── BANNER CTA ── */}
+      {/* ── CTA ── */}
       <section style={{
-        background: "linear-gradient(135deg, #0b1629 0%, #0d2347 60%, #0a1f3d 100%)",
-        padding: "80px 0", position: "relative", overflow: "hidden",
+        background: "linear-gradient(135deg, #0b1629 0%, #0d2347 55%, #0a1f3d 100%)",
+        padding: "88px 0", position: "relative", overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", inset: 0, opacity: 0.05, backgroundImage: "linear-gradient(rgba(0,194,224,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,194,224,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
-        <div className="anim-scale-in" style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px", textAlign: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 32 }}>
-            {[Globe, Award, BookOpen].map((Icon, i) => (
-              <div key={i} style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon size={22} color="#00c2e0" />
-              </div>
-            ))}
+        <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "linear-gradient(rgba(0,194,224,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,194,224,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
+        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 24px", textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{ marginBottom: 48 }}>
+            <CtaFeaturePreviews />
           </div>
-          <h2 style={{ color: "#fff", fontSize: 38, fontWeight: 800, marginBottom: 16 }}>
+          <h2 className="sc-display-font" style={{ color: "#fff", fontSize: 38, fontWeight: 800, marginBottom: 16, letterSpacing: -0.5 }}>
             ¿Listo para optimizar tu portafolio?
           </h2>
-          <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 17, marginBottom: 36, lineHeight: 1.7 }}>
-            Accede a la plataforma SOFTCOM y gestiona tus inversiones con herramientas de nivel institucional.
+          <p style={{ color: "rgba(255,255,255,0.58)", fontSize: 16, marginBottom: 40, lineHeight: 1.75, maxWidth: 540, margin: "0 auto 40px" }}>
+            Accede a SOFTCOM y gestiona tus inversiones con herramientas de nivel institucional, trazabilidad completa y resultados en tiempo real.
           </p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/login" style={{
               background: "linear-gradient(135deg, #00c2e0, #0099b8)", color: "#fff",
               textDecoration: "none", fontWeight: 700, fontSize: 16,
-              padding: "16px 36px", borderRadius: 8,
-              boxShadow: "0 6px 24px rgba(0,194,224,0.4)",
-              display: "flex", alignItems: "center", gap: 8,
+              padding: "15px 36px", borderRadius: 10,
+              boxShadow: "0 6px 26px rgba(0,194,224,0.4)",
+              display: "flex", alignItems: "center", gap: 9,
             }}>
               Iniciar Sesión <ArrowRight size={18} />
             </Link>
@@ -383,36 +1106,31 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: "#060e1a", color: "rgba(255,255,255,0.6)", padding: "56px 0 24px" }}>
+      <footer style={{ background: "#060e1a", color: "rgba(255,255,255,0.55)", padding: "56px 0 28px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
             <div>
-              <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none", marginBottom: 16 }}>
-                <Image
-                  src="/SOFTCOM_LOGO.png"
-                  alt="SOFTCOM Solutions"
-                  width={180}
-                  height={54}
-                  style={{ objectFit: "contain", height: 48, width: "auto" }}
-                />
+              <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none", marginBottom: 18 }}>
+                <Image src="/SOFTCOM_LOGO.png" alt="SOFTCOM Solutions" width={180} height={54}
+                  style={{ objectFit: "contain", height: 44, width: "auto" }} />
               </Link>
-              <p style={{ fontSize: 14, lineHeight: 1.7, maxWidth: 280 }}>
+              <p style={{ fontSize: 13.5, lineHeight: 1.75, maxWidth: 270 }}>
                 Plataforma institucional para la valuación de bonos, análisis de portafolios y gestión de operaciones financieras.
               </p>
             </div>
 
             {[
-              { title: "Plataforma", links: ["Dashboard", "Valuación", "Portafolio", "Operaciones"] },
-              { title: "Empresa", links: ["Acerca de", "Contacto", "Política de privacidad"] },
-              { title: "Soporte", links: ["Documentación", "Reportar error", "Actualizaciones"] },
+              { title: "Plataforma", links: ["Dashboard","Valuación","Portafolio","Operaciones"] },
+              { title: "Empresa",    links: ["Acerca de","Contacto","Privacidad"] },
+              { title: "Soporte",    links: ["Documentación","Reportar error","Actualizaciones"] },
             ].map((col, i) => (
               <div key={i}>
-                <div style={{ color: "#fff", fontWeight: 700, fontSize: 14, marginBottom: 16 }}>{col.title}</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {col.links.map((link) => (
-                    <a key={link} href="#" style={{ color: "rgba(255,255,255,0.55)", textDecoration: "none", fontSize: 14, transition: "color 0.2s" }}
+                <div className="sc-display-font" style={{ color: "#fff", fontWeight: 700, fontSize: 13.5, marginBottom: 18 }}>{col.title}</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                  {col.links.map(link => (
+                    <a key={link} href="#" style={{ color: "rgba(255,255,255,0.48)", textDecoration: "none", fontSize: 13.5, transition: "color 0.18s" }}
                       onMouseEnter={e => (e.currentTarget.style.color = "#00c2e0")}
-                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.48)")}
                     >
                       {link}
                     </a>
@@ -422,14 +1140,16 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-            <div style={{ fontSize: 13 }}>
-              © 2026 SOFTCOM Solutions. Todos los derechos reservados. Hecho en México.
+          <div style={{
+            borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 22,
+            display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12,
+          }}>
+            <div style={{ fontSize: 12.5 }}>
+              © 2026 SOFTCOM Solutions. Todos los derechos reservados. Hecho en México 🇲🇽
             </div>
-            <div style={{ display: "flex", gap: 4 }}>
-              {[1, 2, 3].map((i) => (
-                <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i === 1 ? "#00c2e0" : "rgba(255,255,255,0.2)" }} />
-              ))}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
+              <span style={{ fontSize: 12 }}>Sistema operando</span>
             </div>
           </div>
         </div>
