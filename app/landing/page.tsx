@@ -861,20 +861,6 @@ export default function LandingPage() {
                 opacity: textVisible ? 1 : 0,
                 transform: textVisible ? "translateY(0)" : "translateY(12px)",
               }}>
-                <div style={{
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.28)",
-                  borderRadius: 20, padding: "5px 16px", marginBottom: 22,
-                }}>
-                  <div style={{
-                    width: 6, height: 6, borderRadius: "50%", background: s.accent,
-                    boxShadow: `0 0 8px ${s.accent}`,
-                  }} />
-                  <span style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                    {s.tag}
-                  </span>
-                </div>
-
                 <h1 className="sc-display-font" style={{
                   color: "#fff", fontSize: "clamp(28px, 3.4vw, 48px)", fontWeight: 800,
                   lineHeight: 1.13, marginBottom: 18, letterSpacing: -0.5,
@@ -956,7 +942,7 @@ export default function LandingPage() {
       <section style={{ background: "#fff", padding: "88px 0" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           <div className="anim-fade-up" style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 12 }}>
+            <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 12 }}>
               Módulos del Sistema
             </div>
             <h2 className="sc-display-font" style={{ fontSize: 36, fontWeight: 800, color: "#0b1629", marginBottom: 14 }}>
@@ -1024,7 +1010,7 @@ export default function LandingPage() {
 
             {/* News */}
             <div className="anim-slide-l">
-              <div style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Novedades</div>
+              <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>Novedades</div>
               <h2 className="sc-display-font" style={{ fontSize: 28, fontWeight: 800, color: "#0b1629", marginBottom: 32 }}>
                 Actualizaciones del Sistema
               </h2>
@@ -1041,8 +1027,8 @@ export default function LandingPage() {
                   >
                     <NewsThumbnail index={i} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 5, fontWeight: 500 }}>{n.date}</div>
-                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#0b1629", marginBottom: 5, lineHeight: 1.4 }}>{n.title}</h3>
+                      <div style={{ color: "#94a3b8", fontSize: 13, marginBottom: 5, fontWeight: 500 }}>{n.date}</div>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0b1629", marginBottom: 5, lineHeight: 1.4 }}>{n.title}</h3>
                       <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.6, margin: 0 }}>{n.desc}</p>
                     </div>
                   </div>
@@ -1052,7 +1038,7 @@ export default function LandingPage() {
 
             {/* Quick access */}
             <div className="anim-slide-r delay-1">
-              <div style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 10 }}>Acceso Rápido</div>
+              <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 10 }}>Acceso Rápido</div>
               <h2 className="sc-display-font" style={{ fontSize: 28, fontWeight: 800, color: "#0b1629", marginBottom: 32 }}>Módulos</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                 {[
@@ -1169,12 +1155,8 @@ export default function LandingPage() {
             borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 22,
             display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12,
           }}>
-            <div style={{ fontSize: 12.5 }}>
+            <div style={{ fontSize: 13 }}>
               © 2026 SOFTCOM Solutions. Todos los derechos reservados. Hecho en México 🇲🇽
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#22c55e" }} />
-              <span style={{ fontSize: 12 }}>Sistema operando</span>
             </div>
           </div>
         </div>
