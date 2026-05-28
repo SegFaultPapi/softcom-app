@@ -768,10 +768,122 @@ const NEWS = [
 // PAGE
 // ─────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────
+// MEGA MENU
+// ─────────────────────────────────────────────────────────────
+
+const MENU_DATA: Record<string, {
+  headline: string
+  description: string
+  bullets: string[]
+  cta: string
+  accentColor: string
+  imgLabel: string
+}> = {
+  Plataforma: {
+    headline: "Infraestructura institucional",
+    description: "Seguridad, control de acceso y auditoría desde el primer día.",
+    bullets: ["Autenticación con Email OTP y Google OAuth", "Roles granulares: Admin, Gerente y Analista", "Log inmutable de cada operación y acceso"],
+    cta: "Conocer la plataforma",
+    accentColor: "#00c2e0",
+    imgLabel: "Panel de administración",
+  },
+  "Casos de uso": {
+    headline: "Para cada tipo de institución",
+    description: "Adaptado a los flujos de trabajo del mercado de deuda mexicano.",
+    bullets: ["Fondos de inversión y gestoras de activos", "Tesorerías corporativas de corto plazo", "Casas de bolsa con trazabilidad regulatoria"],
+    cta: "Ver casos de uso",
+    accentColor: "#00c2e0",
+    imgLabel: "Casos de uso",
+  },
+}
+
+function MegaMenuPanel({ active }: { active: string }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { const id = requestAnimationFrame(() => setMounted(true)); return () => cancelAnimationFrame(id) }, [])
+
+  const menu = MENU_DATA[active]
+  if (!menu) return null
+
+  return (
+    <div style={{
+      background: "rgba(6,14,26,0.98)", backdropFilter: "blur(20px)",
+      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? "translateY(0)" : "translateY(-6px)",
+      transition: "opacity 0.18s ease, transform 0.18s ease",
+    }}>
+      <div style={{
+        maxWidth: 1200, margin: "0 auto",
+        padding: "20px 24px 22px",
+        display: "grid", gridTemplateColumns: "1fr 200px", gap: 48, alignItems: "center",
+      }}>
+
+        {/* Left: headline + 2-col bullets + CTA */}
+        <div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 14 }}>
+            <h3 className="sc-display-font" style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>
+              {menu.headline}
+            </h3>
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>{menu.description}</span>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 32px", marginBottom: 16 }}>
+            {menu.bullets.map(b => (
+              <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>{b}</span>
+              </div>
+            ))}
+          </div>
+
+          <Link href="/login" style={{
+            display: "inline-flex", alignItems: "center", gap: 7,
+            background: "linear-gradient(135deg, #00c2e0, #0099b8)",
+            color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 13,
+            padding: "8px 18px", borderRadius: 7,
+            boxShadow: "0 3px 12px rgba(0,194,224,0.25)",
+            transition: "opacity 0.15s",
+          }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85" }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1" }}
+          >
+            {menu.cta} <ChevronRight size={13} />
+          </Link>
+        </div>
+
+        {/* Right: image placeholder */}
+        <div style={{
+          width: "100%", aspectRatio: "4/3",
+          background: "linear-gradient(160deg, #0d1f3c 0%, #071628 100%)",
+          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 10,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.15)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
+            {menu.imgLabel}
+          </span>
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// PAGE
+// ─────────────────────────────────────────────────────────────
+
 export default function LandingPage() {
   const [slide, setSlide] = useState(0)
   const [textVisible, setTextVisible] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
 
   const goToSlide = (next: number) => {
@@ -805,64 +917,93 @@ export default function LandingPage() {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#f0f4f8", minHeight: "100vh" }}>
 
-      {/* ── NAVBAR ── */}
-      <header style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
-        background: scrolled ? "rgba(11,22,41,0.98)" : "rgba(11,22,41,0.88)",
-        backdropFilter: "blur(14px)",
-        borderBottom: scrolled ? "1px solid rgba(0,194,224,0.18)" : "none",
-        boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.25)" : "none",
-        transition: "all 0.3s ease",
-      }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", gap: 32 }}>
-          <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-            <Image src="/SOFTCOM_LOGO.png" alt="SOFTCOM Solutions" width={160} height={48}
-              style={{ objectFit: "contain", height: 40, width: "auto" }} priority />
-          </Link>
+      {/* ── NAVBAR + MEGA MENU ── */}
+      <div
+        style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}
+        onMouseLeave={() => setOpenMenu(null)}
+      >
+        <header style={{
+          position: "relative",
+          background: scrolled ? "rgba(11,22,41,0.98)" : "rgba(11,22,41,0.88)",
+          backdropFilter: "blur(14px)",
+          borderBottom: scrolled ? "1px solid rgba(0,194,224,0.18)" : "none",
+          boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.25)" : "none",
+          transition: "all 0.3s ease",
+        }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", gap: 40 }}>
 
-          <nav style={{ display: "flex", gap: 2, marginLeft: 8 }} className="hidden md:flex">
-            {["Servicios","Plataforma","Análisis","Clientes"].map(item => (
-              <button key={item} style={{
-                background: "none", border: "none", color: "rgba(255,255,255,0.7)",
-                fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-                padding: "8px 14px", borderRadius: 6, cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 4, transition: "all 0.18s",
+            <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+              <Image src="/SOFTCOM_LOGO.png" alt="SOFTCOM Solutions" width={160} height={48}
+                style={{ objectFit: "contain", height: 40, width: "auto" }} priority />
+            </Link>
+
+            <nav className="hidden md:flex" style={{ display: "flex", gap: 0, alignItems: "center" }}>
+              {(["Plataforma","Casos de uso"] as const).map(item => {
+                const isActive = openMenu === item
+                return (
+                  <button key={item}
+                    onMouseEnter={e => { setOpenMenu(item); (e.currentTarget as HTMLButtonElement).style.color = "#fff" }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.65)" }}
+                    style={{
+                      background: "none", border: "none",
+                      color: isActive ? "#fff" : "rgba(255,255,255,0.65)",
+                      fontSize: 16, fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
+                      padding: "8px 14px", borderRadius: 6, cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: 4, transition: "color 0.15s",
+                    }}
+                  >
+                    {item}
+                    <ChevronDown size={12} style={{ opacity: 0.5, transition: "transform 0.2s", transform: isActive ? "rotate(180deg)" : "rotate(0deg)" }} />
+                  </button>
+                )
+              })}
+              <Link href="#precios" style={{
+                color: "rgba(255,255,255,0.65)", textDecoration: "none",
+                fontSize: 16, fontWeight: 500, padding: "8px 14px", borderRadius: 6,
+                transition: "color 0.15s",
               }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "#fff"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.08)" }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; (e.currentTarget as HTMLButtonElement).style.background = "none" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#fff" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.65)" }}
               >
-                {item} <ChevronDown size={12} />
-              </button>
-            ))}
-          </nav>
+                Precios
+              </Link>
+            </nav>
 
-          <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-            <Link href="/login" style={{
-              color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: 14,
-              padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.18)",
-              transition: "all 0.18s", fontWeight: 500,
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#fff"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.4)" }}
-              onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.75)"; (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(255,255,255,0.18)" }}
-            >
-              Iniciar Sesión
-            </Link>
-            <Link href="/login" style={{
-              background: "linear-gradient(135deg, #00c2e0, #0099b8)",
-              color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700,
-              padding: "9px 22px", borderRadius: 7,
-              boxShadow: "0 4px 14px rgba(0,194,224,0.35)",
-            }}>
-              Acceder
-            </Link>
-            <button className="md:hidden" onClick={() => setMenuOpen(o => !o)} style={{
-              background: "none", border: "none", color: "#fff", cursor: "pointer",
-            }}>
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
+              <Link href="#contacto" style={{
+                color: "rgba(255,255,255,0.65)", textDecoration: "none",
+                fontSize: 16, fontWeight: 500,
+                transition: "color 0.15s",
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "#fff" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.65)" }}
+              >
+                Contacto
+              </Link>
+              <Link href="/login" style={{
+                background: "linear-gradient(135deg, #00c2e0, #0099b8)",
+                color: "#fff", textDecoration: "none", fontSize: 16, fontWeight: 700,
+                padding: "10px 26px", borderRadius: 7,
+                boxShadow: "0 4px 14px rgba(0,194,224,0.3)",
+                transition: "opacity 0.15s",
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1" }}
+              >
+                Acceder
+              </Link>
+              <button className="md:hidden" onClick={() => setMenuOpen(o => !o)} style={{
+                background: "none", border: "none", color: "#fff", cursor: "pointer",
+              }}>
+                {menuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+
+        {/* Mega menu dropdown */}
+        {openMenu && <MegaMenuPanel active={openMenu} />}
+      </div>
 
       {/* ── HERO ── */}
       <section style={{
