@@ -7,6 +7,11 @@ import {
   Building2, AlertTriangle, FileText, PieChart,
   Coins, Shield, BookOpen, ArrowUpRight,
 } from "lucide-react"
+import {
+  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  PieChart as RePieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from "recharts"
 import { useAuth, type Role } from "@/lib/auth-context"
 import { RouteGuard } from "@/components/route-guard"
 
@@ -101,7 +106,7 @@ const MENU: MenuItem[] = [
   },
 ]
 
-// Role-specific mock KPIs
+// ── KPI Stats ────────────────────────────────────────────
 const ROLE_STATS: Record<string, {
   label: string; value: string; delta?: string; up?: boolean; color: string
 }[]> = {
@@ -134,6 +139,313 @@ const ROLE_GREETING: Record<string, string> = {
   gerente_cartera: "Tu portafolio está activo y monitoreado.",
   analyst: "Aquí tienes tus métricas del día.",
 }
+
+// ── Chart Mock Data ────────────────────────────────────────
+
+// gerente_cartera
+const donutPortafolio = [
+  { name: "CETES", value: 14_823_000, color: "#00c2e0" },
+  { name: "Bonos M", value: 3_148_000, color: "#3b82f6" },
+  { name: "Disponible", value: 3_028_847, color: "#e2e8f0" },
+]
+const plMensual = [
+  { mes: "Dic", pl: 12_400 },
+  { mes: "Ene", pl: 23_100 },
+  { mes: "Feb", pl: 18_700 },
+  { mes: "Mar", pl: 31_500 },
+  { mes: "Abr", pl: 56_200 },
+  { mes: "May", pl: 83_000 },
+]
+const posicionesBar = [
+  { nombre: "CETES 28d", valor: 9_912_300 },
+  { nombre: "CETES 91d", valor: 4_926_700 },
+  { nombre: "Bono M 7% 2031", valor: 1_944_000 },
+  { nombre: "Bono M 8.5% 2029", valor: 499_000 },
+]
+
+// analyst
+const curvaRendimientos = [
+  { plazo: "28d",  tasa: 10.85 },
+  { plazo: "91d",  tasa: 10.72 },
+  { plazo: "182d", tasa: 10.60 },
+  { plazo: "1 año",tasa: 10.41 },
+  { plazo: "3 año",tasa: 10.20 },
+  { plazo: "5 año",tasa: 10.05 },
+  { plazo: "10 año",tasa: 9.88 },
+  { plazo: "20 año",tasa: 9.74 },
+  { plazo: "30 año",tasa: 9.62 },
+]
+const tasasHistoricas = [
+  { mes: "Dic", cetes28: 11.25, tiie: 11.50 },
+  { mes: "Ene", cetes28: 11.10, tiie: 11.25 },
+  { mes: "Feb", cetes28: 10.98, tiie: 11.10 },
+  { mes: "Mar", cetes28: 10.85, tiie: 10.97 },
+  { mes: "Abr", cetes28: 10.90, tiie: 11.00 },
+  { mes: "May", cetes28: 10.85, tiie: 10.97 },
+]
+
+// admin
+const aumPorEmpresa = [
+  { empresa: "Inversora Norte",  aum: 24.5 },
+  { empresa: "Fondo Bajío",      aum: 18.2 },
+  { empresa: "Corp. Noreste",    aum: 15.8 },
+  { empresa: "Grupo Horizonte",  aum: 11.3 },
+  { empresa: "Casa Bolsa Alfa",  aum: 9.7 },
+  { empresa: "Otros",            aum: 7.1 },
+]
+const actividadSistema = [
+  { dia: "Lun", operaciones: 12, logins: 18 },
+  { dia: "Mar", operaciones: 19, logins: 24 },
+  { dia: "Mié", operaciones: 8,  logins: 15 },
+  { dia: "Jue", operaciones: 22, logins: 29 },
+  { dia: "Vie", operaciones: 31, logins: 38 },
+  { dia: "Sáb", operaciones: 4,  logins: 6  },
+  { dia: "Dom", operaciones: 2,  logins: 4  },
+]
+
+// ── Shared chart style ────────────────────────────────────
+const CHART_FONT = { fontSize: 11, fill: "#64748b", fontFamily: "inherit" }
+const CARD = {
+  background: "#fff", borderRadius: 16,
+  border: "1px solid #e2e8f0",
+  padding: "24px",
+}
+
+function ChartCard({
+  title, subtitle, children, span = 1,
+}: {
+  title: string; subtitle?: string; children: React.ReactNode; span?: number
+}) {
+  return (
+    <div style={{ ...CARD, gridColumn: `span ${span}` }}>
+      <p style={{ fontSize: 13, fontWeight: 700, color: "#0b1629", marginBottom: 2, margin: 0 }}>{title}</p>
+      {subtitle && <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 3, marginBottom: 16 }}>{subtitle}</p>}
+      {!subtitle && <div style={{ height: 16 }} />}
+      {children}
+    </div>
+  )
+}
+
+// ── Role chart sections ───────────────────────────────────
+
+function ChartsGerenteCartera() {
+  const fmt = (v: number) =>
+    v >= 1_000_000
+      ? `$${(v / 1_000_000).toFixed(2)}M`
+      : `$${(v / 1_000).toFixed(0)}K`
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 36 }}>
+
+      {/* Donut composición */}
+      <ChartCard title="Composición del portafolio" subtitle="Distribución por tipo de instrumento">
+        <ResponsiveContainer width="100%" height={200}>
+          <RePieChart>
+            <Pie
+              data={donutPortafolio}
+              cx="50%" cy="50%"
+              innerRadius={55} outerRadius={85}
+              paddingAngle={3}
+              dataKey="value"
+            >
+              {donutPortafolio.map((d) => (
+                <Cell key={d.name} fill={d.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(v: number) => [fmt(v), ""]}
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Legend
+              iconType="circle" iconSize={8}
+              formatter={(v) => <span style={{ fontSize: 11, color: "#64748b" }}>{v}</span>}
+            />
+          </RePieChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Area P&L mensual */}
+      <ChartCard title="P&L acumulado" subtitle="Ganancia/pérdida mensual (MXN)">
+        <ResponsiveContainer width="100%" height={200}>
+          <AreaChart data={plMensual} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="gradPL" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="mes" tick={CHART_FONT} axisLine={false} tickLine={false} />
+            <YAxis
+              tick={CHART_FONT} axisLine={false} tickLine={false} width={48}
+              tickFormatter={(v) => `$${(v / 1000).toFixed(0)}K`}
+            />
+            <Tooltip
+              formatter={(v: number) => [`$${v.toLocaleString("es-MX")}`, "P&L"]}
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Area
+              type="monotone" dataKey="pl"
+              stroke="#22c55e" strokeWidth={2.5}
+              fill="url(#gradPL)"
+              dot={{ fill: "#22c55e", strokeWidth: 0, r: 3 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Bar posiciones */}
+      <ChartCard title="Valor por posición" subtitle="Valor de mercado actual (MXN)">
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={posicionesBar} layout="vertical" margin={{ top: 4, right: 12, left: 4, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+            <XAxis
+              type="number" tick={CHART_FONT} axisLine={false} tickLine={false}
+              tickFormatter={(v) => `$${(v / 1_000_000).toFixed(1)}M`}
+            />
+            <YAxis
+              type="category" dataKey="nombre"
+              tick={{ ...CHART_FONT, fontSize: 10 }} axisLine={false} tickLine={false} width={96}
+            />
+            <Tooltip
+              formatter={(v: number) => [`$${v.toLocaleString("es-MX")}`, "Valor"]}
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Bar dataKey="valor" radius={[0, 6, 6, 0]}>
+              {posicionesBar.map((_, i) => (
+                <Cell key={i} fill={["#00c2e0", "#3b82f6", "#6366f1", "#a855f7"][i % 4]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    </div>
+  )
+}
+
+function ChartsAnalyst() {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
+
+      {/* Curva de rendimientos */}
+      <ChartCard title="Curva de rendimientos" subtitle="Tasa de rendimiento por plazo (%) — mercado actual">
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={curvaRendimientos} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="gradCurva" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.18} />
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="plazo" tick={CHART_FONT} axisLine={false} tickLine={false} />
+            <YAxis
+              tick={CHART_FONT} axisLine={false} tickLine={false} width={42}
+              domain={[9.4, 11.2]} tickFormatter={(v) => `${v}%`}
+            />
+            <Tooltip
+              formatter={(v: number) => [`${v.toFixed(2)}%`, "Rendimiento"]}
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Area
+              type="monotone" dataKey="tasa"
+              stroke="#6366f1" strokeWidth={2.5}
+              fill="url(#gradCurva)"
+              dot={{ fill: "#6366f1", strokeWidth: 0, r: 4 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* CETES vs TIIE histórico */}
+      <ChartCard title="CETES 28d vs TIIE" subtitle="Evolución de tasas de referencia — últimos 6 meses (%)">
+        <ResponsiveContainer width="100%" height={220}>
+          <LineChart data={tasasHistoricas} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey="mes" tick={CHART_FONT} axisLine={false} tickLine={false} />
+            <YAxis
+              tick={CHART_FONT} axisLine={false} tickLine={false} width={42}
+              domain={[10.5, 11.7]} tickFormatter={(v) => `${v}%`}
+            />
+            <Tooltip
+              formatter={(v: number) => [`${v.toFixed(2)}%`, ""]}
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Legend
+              iconType="circle" iconSize={8}
+              formatter={(v) => <span style={{ fontSize: 11, color: "#64748b" }}>{v === "cetes28" ? "CETES 28d" : "TIIE"}</span>}
+            />
+            <Line type="monotone" dataKey="cetes28" stroke="#00c2e0" strokeWidth={2.5}
+              dot={{ fill: "#00c2e0", strokeWidth: 0, r: 4 }} />
+            <Line type="monotone" dataKey="tiie" stroke="#f59e0b" strokeWidth={2.5}
+              strokeDasharray="5 4"
+              dot={{ fill: "#f59e0b", strokeWidth: 0, r: 4 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    </div>
+  )
+}
+
+function ChartsAdmin() {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
+
+      {/* AUM por empresa */}
+      <ChartCard title="AUM por empresa cliente" subtitle="Activos bajo gestión (millones MXN)">
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={aumPorEmpresa} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis
+              dataKey="empresa" tick={{ ...CHART_FONT, fontSize: 10 }}
+              axisLine={false} tickLine={false}
+              interval={0} angle={-15} textAnchor="end" height={40}
+            />
+            <YAxis
+              tick={CHART_FONT} axisLine={false} tickLine={false} width={36}
+              tickFormatter={(v) => `${v}M`}
+            />
+            <Tooltip
+              formatter={(v: number) => [`$${v}M MXN`, "AUM"]}
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Bar dataKey="aum" radius={[6, 6, 0, 0]}>
+              {aumPorEmpresa.map((_, i) => (
+                <Cell key={i} fill={["#00c2e0","#3b82f6","#6366f1","#a855f7","#f59e0b","#94a3b8"][i % 6]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Actividad semanal */}
+      <ChartCard title="Actividad del sistema" subtitle="Operaciones y sesiones iniciadas — última semana">
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={actividadSistema} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <XAxis dataKey="dia" tick={CHART_FONT} axisLine={false} tickLine={false} />
+            <YAxis tick={CHART_FONT} axisLine={false} tickLine={false} width={28} />
+            <Tooltip
+              contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 12 }}
+            />
+            <Legend
+              iconType="circle" iconSize={8}
+              formatter={(v) => (
+                <span style={{ fontSize: 11, color: "#64748b" }}>
+                  {v === "operaciones" ? "Operaciones" : "Sesiones"}
+                </span>
+              )}
+            />
+            <Bar dataKey="operaciones" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="logins" fill="#00c2e0" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+    </div>
+  )
+}
+
+// ── Main ──────────────────────────────────────────────────
 
 export default function DashboardPage() {
   return (
@@ -250,8 +562,36 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* ── Section heading ── */}
-        <div className="anim-fade-up delay-2" style={{ marginBottom: 20, display: "flex", alignItems: "baseline", gap: 14 }}>
+        {/* ── Charts section ── */}
+        {user.role !== "admin" && (
+          <div className="anim-fade-up delay-2" style={{ marginBottom: 8 }}>
+            <p style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>
+              Resumen visual
+            </p>
+            <h2 className="sc-display-font" style={{ fontSize: 22, fontWeight: 800, color: "#0b1629", margin: "0 0 20px" }}>
+              Panorama del mercado
+            </h2>
+          </div>
+        )}
+        {user.role === "admin" && (
+          <div className="anim-fade-up delay-2" style={{ marginBottom: 8 }}>
+            <p style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>
+              Resumen visual
+            </p>
+            <h2 className="sc-display-font" style={{ fontSize: 22, fontWeight: 800, color: "#0b1629", margin: "0 0 20px" }}>
+              Visión general del sistema
+            </h2>
+          </div>
+        )}
+
+        <div className="anim-fade-up delay-3">
+          {user.role === "gerente_cartera" && <ChartsGerenteCartera />}
+          {user.role === "analyst" && <ChartsAnalyst />}
+          {user.role === "admin" && <ChartsAdmin />}
+        </div>
+
+        {/* ── Section heading modules ── */}
+        <div className="anim-fade-up delay-4" style={{ marginBottom: 20, display: "flex", alignItems: "baseline", gap: 14 }}>
           <div>
             <p style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4 }}>
               Módulos disponibles
