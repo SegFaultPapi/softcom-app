@@ -83,8 +83,9 @@
 }
 
 @theme inline {
-  --font-sans: 'Inter', 'Geist', sans-serif;
-  --font-mono: 'Geist Mono', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -129,7 +130,10 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', 'Geist', sans-serif;
+    font-family: 'DM Sans', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
   }
 }
 
@@ -246,3 +250,120 @@
   transform: translateY(-3px);
   box-shadow: 0 10px 28px rgba(0,0,0,0.1);
 }
+
+/* ── SOFTCOM Financial Data Typography ── */
+.sc-number {
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.sc-display-font {
+  font-family: 'Outfit', sans-serif;
+}
+
+.sc-price-xl {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2.75rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.sc-price-lg {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.sc-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.sc-positive { color: #22c55e; }
+.sc-negative { color: #ef4444; }
+.sc-neutral  { color: #00c2e0; }
+
+/* KPI Card */
+.sc-kpi-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px 24px;
+  transition: all 0.22s ease;
+}
+.sc-kpi-card:hover {
+  border-color: rgba(0,194,224,0.4);
+  box-shadow: 0 6px 20px rgba(0,194,224,0.08);
+}
+
+/* Dot grid background for dark panels */
+.sc-dot-grid {
+  background-image: radial-gradient(rgba(0,194,224,0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Result panel */
+.sc-result-panel {
+  background: linear-gradient(160deg, #0b1629 0%, #0d2347 100%);
+  border: 1px solid rgba(0,194,224,0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.sc-result-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(0,194,224,0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* Trade ticket styles */
+.sc-trade-buy  { --trade-color: #22c55e; }
+.sc-trade-sell { --trade-color: #ef4444; }
+
+.sc-trade-total {
+  background: rgba(0,194,224,0.06);
+  border: 1px solid rgba(0,194,224,0.2);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+/* Chart tooltip */
+.sc-chart-tooltip {
+  background: #0b1629 !important;
+  border: 1px solid rgba(0,194,224,0.25) !important;
+  border-radius: 8px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13px !important;
+  color: #fff !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+}
+
+/* Subtle separator with label */
+.sc-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+.sc-divider::before, .sc-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+/* Badge variants for roles */
+.badge-admin    { background: rgba(168,85,247,0.1); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+.badge-gerente  { background: rgba(59,130,246,0.1);  color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); }
+.badge-analista { background: rgba(0,194,224,0.1);   color: #00c2e0; border: 1px solid rgba(0,194,224,0.25); }

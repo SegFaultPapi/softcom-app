@@ -53,8 +53,9 @@ export function NavBar() {
   return (
     <header style={{
       background: "linear-gradient(90deg, #0b1629 0%, #0d2347 100%)",
-      borderBottom: "1px solid rgba(0,194,224,0.2)",
+      borderBottom: "1px solid rgba(0,194,224,0.15)",
       position: "sticky", top: 0, zIndex: 100,
+      boxShadow: "0 2px 16px rgba(0,0,0,0.2)",
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", gap: 28 }}>
 
