@@ -20,7 +20,7 @@ function ScreenPortafolio() {
   return (
     <>
       {/* KPI row */}
-      <div style={{ display: "flex", gap: 8, padding: "12px 16px 8px" }}>
+      <div style={{ display: "flex", gap: 8, padding: "16px 16px 10px" }}>
         {[
           { label: "Capital Total", value: "$15.0M", color: "#00c2e0" },
           { label: "Disponible",    value: "$3.0M",  color: "#3b82f6" },
@@ -29,10 +29,10 @@ function ScreenPortafolio() {
         ].map((k) => (
           <div key={k.label} style={{
             flex: 1, background: "rgba(255,255,255,0.04)", borderRadius: 8,
-            padding: "8px 10px", borderLeft: `2px solid ${k.color}`,
+            padding: "10px 10px", borderLeft: `2px solid ${k.color}`,
           }}>
-            <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", marginBottom: 3, textTransform: "uppercase", letterSpacing: "0.05em" }}>{k.label}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: k.color, fontFamily: "'IBM Plex Mono', monospace" }}>{k.value}</div>
+            <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{k.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: k.color, fontFamily: "'IBM Plex Mono', monospace" }}>{k.value}</div>
           </div>
         ))}
       </div>
@@ -41,18 +41,18 @@ function ScreenPortafolio() {
         {/* Donut */}
         <div style={{
           width: 120, background: "rgba(255,255,255,0.03)", borderRadius: 10,
-          padding: "8px 10px", flexShrink: 0,
-          display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+          padding: "10px 10px", flexShrink: 0,
+          display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
         }}>
           <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", alignSelf: "flex-start", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Distribución</div>
-          <div style={{ position: "relative", width: 60, height: 60 }}>
-            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "conic-gradient(#00c2e0 0% 80%, #3b82f6 80% 95%, #6366f1 95% 100%)" }} />
+          <div style={{ position: "relative", width: 68, height: 68 }}>
+            <div style={{ width: 68, height: 68, borderRadius: "50%", background: "conic-gradient(#00c2e0 0% 80%, #3b82f6 80% 95%, #6366f1 95% 100%)" }} />
             <div style={{
               position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-              width: 30, height: 30, borderRadius: "50%", background: "#0b1629",
+              width: 34, height: 34, borderRadius: "50%", background: "#0b1629",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <span style={{ fontSize: 9, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace" }}>80%</span>
+              <span style={{ fontSize: 9.5, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace" }}>80%</span>
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
@@ -66,7 +66,7 @@ function ScreenPortafolio() {
         </div>
         {/* Mini table */}
         <div style={{ flex: 1, background: "rgba(255,255,255,0.03)", borderRadius: 10, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 50px", padding: "6px 10px", background: "rgba(255,255,255,0.05)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 60px 50px", padding: "7px 10px", background: "rgba(255,255,255,0.05)" }}>
             {["Instrumento","Valor","P&L"].map(h => (
               <span key={h} style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>{h}</span>
             ))}
@@ -78,7 +78,7 @@ function ScreenPortafolio() {
             { name: "Bono M 8.5%", valor: "$0.5M",  pl: "−$11K", c: "#ef4444" },
           ].map((row, i) => (
             <div key={i} style={{
-              display: "grid", gridTemplateColumns: "1fr 60px 50px", padding: "5px 10px",
+              display: "grid", gridTemplateColumns: "1fr 60px 50px", padding: "7px 10px",
               borderTop: "1px solid rgba(255,255,255,0.04)",
               background: i % 2 === 1 ? "rgba(255,255,255,0.02)" : "transparent",
             }}>
@@ -89,48 +89,81 @@ function ScreenPortafolio() {
           ))}
         </div>
       </div>
+      {/* Historial bar chart */}
+      <div style={{ padding: "0 16px 16px" }}>
+        <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "10px 12px" }}>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 8 }}>Historial de valor</div>
+          <div style={{ display: "flex", gap: 4, alignItems: "flex-end", height: 44 }}>
+            {[55, 60, 52, 68, 72, 65, 80, 75, 82, 78, 88, 92].map((h, i) => (
+              <div key={i} style={{
+                flex: 1, borderRadius: "2px 2px 0 0",
+                background: i === 11 ? "#00c2e0" : `rgba(0,194,224,${0.18 + (i / 11) * 0.45})`,
+                height: `${h}%`,
+              }} />
+            ))}
+          </div>
+        </div>
+      </div>
     </>
   )
 }
 
 function ScreenValuacion() {
   return (
-    <div style={{ padding: "12px 16px 10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-      {/* Form */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ fontSize: 7.5, color: "#00c2e0", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>CETES — Calculadora</div>
-        {[
-          { label: "Valor nominal", val: "10.0000", unit: "MXN" },
-          { label: "Tasa (r)", val: "11.25", unit: "%" },
-          { label: "Plazo", val: "91", unit: "días" },
-          { label: "Cantidad", val: "500,000", unit: "títulos" },
-        ].map(f => (
-          <div key={f.label}>
-            <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</div>
-            <div style={{
-              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 5, padding: "3px 8px",
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
-              <span style={{ fontSize: 9.5, color: "#fff", fontFamily: "'IBM Plex Mono', monospace" }}>{f.val}</span>
-              <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontFamily: "'IBM Plex Mono', monospace" }}>{f.unit}</span>
+    <div style={{ padding: "16px 16px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        {/* Form */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ fontSize: 7.5, color: "#00c2e0", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>CETES — Calculadora</div>
+          {[
+            { label: "Valor nominal", val: "10.0000", unit: "MXN" },
+            { label: "Tasa (r)", val: "11.25", unit: "%" },
+            { label: "Plazo", val: "91", unit: "días" },
+            { label: "Cantidad", val: "500,000", unit: "títulos" },
+          ].map(f => (
+            <div key={f.label}>
+              <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginBottom: 2, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</div>
+              <div style={{
+                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 5, padding: "5px 8px",
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+              }}>
+                <span style={{ fontSize: 9.5, color: "#fff", fontFamily: "'IBM Plex Mono', monospace" }}>{f.val}</span>
+                <span style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", fontFamily: "'IBM Plex Mono', monospace" }}>{f.unit}</span>
+              </div>
             </div>
+          ))}
+          {/* Presets */}
+          <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
+            {["28d","91d","182d","364d"].map(d => (
+              <div key={d} style={{
+                flex: 1, textAlign: "center", padding: "3px 0",
+                borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)",
+                fontSize: 7.5, color: "rgba(255,255,255,0.4)",
+              }}>{d}</div>
+            ))}
           </div>
-        ))}
-      </div>
-      {/* Result */}
-      <div style={{
-        background: "rgba(0,194,224,0.06)", border: "1px solid rgba(0,194,224,0.2)",
-        borderRadius: 10, padding: "12px 14px",
-        display: "flex", flexDirection: "column", justifyContent: "center", gap: 4,
-      }}>
-        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Precio unitario</div>
-        <div style={{ fontSize: 26, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.1 }}>$9.8534</div>
-        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)" }}>Rendimiento: 1.490%</div>
-        <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)" }}>Descuento: $0.1466</div>
-        <div style={{ marginTop: 6, padding: "5px 8px", borderRadius: 5, background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)" }}>
-          <span style={{ fontSize: 8, color: "#22c55e", fontWeight: 700 }}>Total: $4,926,700.00 MXN</span>
         </div>
+        {/* Result */}
+        <div style={{
+          background: "rgba(0,194,224,0.06)", border: "1px solid rgba(0,194,224,0.2)",
+          borderRadius: 10, padding: "14px 14px",
+          display: "flex", flexDirection: "column", justifyContent: "center", gap: 5,
+        }}>
+          <div style={{ fontSize: 7.5, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>Precio unitario</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#00c2e0", fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.1 }}>$9.8534</div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)" }}>Rendimiento: 1.490%</div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)" }}>Descuento: $0.1466</div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)" }}>Duration: 0.2493 años</div>
+          <div style={{ marginTop: 4, padding: "6px 8px", borderRadius: 5, background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)" }}>
+            <span style={{ fontSize: 8.5, color: "#22c55e", fontWeight: 700 }}>Total: $4,926,700.00</span>
+          </div>
+        </div>
+      </div>
+      {/* Formula reference */}
+      <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "8px 12px", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ fontSize: 7, color: "rgba(255,255,255,0.25)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Fórmula aplicada</div>
+        <div style={{ fontSize: 8.5, color: "rgba(0,194,224,0.7)", fontFamily: "'IBM Plex Mono', monospace" }}>P = F / (1 + r)^(N/360)</div>
       </div>
     </div>
   )
@@ -138,11 +171,11 @@ function ScreenValuacion() {
 
 function ScreenOperaciones() {
   return (
-    <div style={{ padding: "12px 16px 10px" }}>
-      <div style={{ display: "flex", gap: 0, marginBottom: 10 }}>
+    <div style={{ padding: "16px 16px 14px" }}>
+      <div style={{ display: "flex", gap: 0, marginBottom: 14 }}>
         {["Compra","Venta"].map((t, i) => (
           <div key={t} style={{
-            flex: 1, textAlign: "center", padding: "5px 0", fontSize: 9, fontWeight: 700,
+            flex: 1, textAlign: "center", padding: "7px 0", fontSize: 9.5, fontWeight: 700,
             background: i === 0 ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.08)",
             color: i === 0 ? "#22c55e" : "#ef4444",
             borderRadius: i === 0 ? "6px 0 0 6px" : "0 6px 6px 0",
@@ -151,45 +184,45 @@ function ScreenOperaciones() {
         ))}
       </div>
       {[
-        { label: "Cliente", val: "Inversora del Norte SA" },
-        { label: "Instrumento", val: "CETES 91d" },
-        { label: "Precio unitario", val: "$9.8534 MXN" },
-        { label: "Cantidad", val: "100,000 títulos" },
-        { label: "Saldo disponible", val: "$3,000,000.00" },
+        { label: "Cliente",          val: "Inversora del Norte SA" },
+        { label: "Instrumento",      val: "CETES 91d"              },
+        { label: "Precio unitario",  val: "$9.8534 MXN"            },
+        { label: "Cantidad",         val: "100,000 títulos"        },
+        { label: "Saldo disponible", val: "$3,000,000.00"          },
+        { label: "Saldo post-op.",   val: "$2,014,660.00"          },
       ].map(r => (
         <div key={r.label} style={{
-          display: "flex", justifyContent: "space-between", padding: "4px 0",
+          display: "flex", justifyContent: "space-between", padding: "6px 0",
           borderBottom: "1px solid rgba(255,255,255,0.05)",
         }}>
-          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.35)" }}>{r.label}</span>
-          <span style={{ fontSize: 8, color: "rgba(255,255,255,0.75)", fontFamily: "'IBM Plex Mono', monospace" }}>{r.val}</span>
+          <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.35)" }}>{r.label}</span>
+          <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.75)", fontFamily: "'IBM Plex Mono', monospace" }}>{r.val}</span>
         </div>
       ))}
       <div style={{
-        marginTop: 10, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)",
-        borderRadius: 6, padding: "6px 10px", display: "flex", justifyContent: "space-between", alignItems: "center",
+        marginTop: 12, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)",
+        borderRadius: 6, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center",
       }}>
-        <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.5)" }}>Importe total</span>
-        <span style={{ fontSize: 12, color: "#22c55e", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>$985,340.00</span>
+        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)" }}>Importe total</span>
+        <span style={{ fontSize: 13, color: "#22c55e", fontFamily: "'IBM Plex Mono', monospace", fontWeight: 700 }}>$985,340.00</span>
+      </div>
+      <div style={{
+        marginTop: 8, background: "rgba(34,197,94,0.9)", borderRadius: 6,
+        padding: "8px 12px", textAlign: "center",
+      }}>
+        <span style={{ fontSize: 9, color: "#0b1629", fontWeight: 800, letterSpacing: "0.04em" }}>CONFIRMAR OPERACIÓN</span>
       </div>
     </div>
   )
 }
 
-function MockDashboard() {
-  const [screen, setScreen] = useState(0)
-  const [visible, setVisible] = useState(true)
+function MockDashboard({ slide, visible }: { slide: number; visible: boolean }) {
+  const [screen, setScreen] = useState(slide)
 
+  // Update screen only when faded out → content swaps invisibly, then fades in
   useEffect(() => {
-    const t = setInterval(() => {
-      setVisible(false)
-      setTimeout(() => {
-        setScreen(s => (s + 1) % 3)
-        setVisible(true)
-      }, 360)
-    }, 3800)
-    return () => clearInterval(t)
-  }, [])
+    if (visible) setScreen(slide)
+  }, [visible, slide])
 
   const tabs = ["Portafolio", "Valuación", "Operaciones"]
 
@@ -232,12 +265,12 @@ function MockDashboard() {
         </div>
       </div>
 
-      {/* Animated screen content */}
+      {/* Animated screen content — visibility driven by parent */}
       <div style={{
-        transition: "opacity 0.36s ease, transform 0.36s ease",
+        transition: "opacity 0.4s ease, transform 0.4s ease",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(-10px)",
-        minHeight: 220,
+        minHeight: 330,
       }}>
         {screen === 0 && <ScreenPortafolio />}
         {screen === 1 && <ScreenValuacion />}
@@ -742,24 +775,22 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
 
   const goToSlide = (next: number) => {
+    if (next === slide) return
     setTextVisible(false)
     setTimeout(() => {
       setSlide(next)
       setTextVisible(true)
-    }, 380)
+    }, 420)
   }
 
   useEffect(() => {
     const t = setInterval(() => {
       setTextVisible(false)
       setTimeout(() => {
-        setSlide(s => {
-          const next = (s + 1) % SLIDES.length
-          return next
-        })
+        setSlide(s => (s + 1) % SLIDES.length)
         setTextVisible(true)
-      }, 380)
-    }, 5000)
+      }, 420)
+    }, 11000)
     return () => clearInterval(t)
   }, [])
 
@@ -851,7 +882,7 @@ export default function LandingPage() {
         <div style={{ position: "absolute", bottom: "8%", left: "0%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(26,58,107,0.25) 0%, transparent 70%)", pointerEvents: "none" }} />
 
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "72px 24px", position: "relative", zIndex: 1, width: "100%" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 64, alignItems: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 56, alignItems: "center" }}>
 
             {/* Text */}
             <div>
@@ -910,7 +941,7 @@ export default function LandingPage() {
 
             {/* Animated mock dashboard */}
             <div className="anim-slide-r delay-2">
-              <MockDashboard />
+              <MockDashboard slide={slide} visible={textVisible} />
             </div>
           </div>
         </div>
