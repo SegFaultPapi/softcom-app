@@ -737,11 +737,29 @@ const NEWS = [
 
 export default function LandingPage() {
   const [slide, setSlide] = useState(0)
+  const [textVisible, setTextVisible] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
+  const goToSlide = (next: number) => {
+    setTextVisible(false)
+    setTimeout(() => {
+      setSlide(next)
+      setTextVisible(true)
+    }, 380)
+  }
+
   useEffect(() => {
-    const t = setInterval(() => setSlide(s => (s + 1) % SLIDES.length), 5000)
+    const t = setInterval(() => {
+      setTextVisible(false)
+      setTimeout(() => {
+        setSlide(s => {
+          const next = (s + 1) % SLIDES.length
+          return next
+        })
+        setTextVisible(true)
+      }, 380)
+    }, 5000)
     return () => clearInterval(t)
   }, [])
 
@@ -837,57 +855,64 @@ export default function LandingPage() {
 
             {/* Text */}
             <div>
+              {/* Fade container */}
               <div style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.28)",
-                borderRadius: 20, padding: "5px 16px", marginBottom: 22,
+                transition: "opacity 0.38s ease, transform 0.38s ease",
+                opacity: textVisible ? 1 : 0,
+                transform: textVisible ? "translateY(0)" : "translateY(12px)",
               }}>
                 <div style={{
-                  width: 6, height: 6, borderRadius: "50%", background: s.accent,
-                  boxShadow: `0 0 8px ${s.accent}`, transition: "background 0.4s",
-                }} />
-                <span style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  {s.tag}
-                </span>
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.28)",
+                  borderRadius: 20, padding: "5px 16px", marginBottom: 22,
+                }}>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: "50%", background: s.accent,
+                    boxShadow: `0 0 8px ${s.accent}`,
+                  }} />
+                  <span style={{ color: "#00c2e0", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                    {s.tag}
+                  </span>
+                </div>
+
+                <h1 className="sc-display-font" style={{
+                  color: "#fff", fontSize: "clamp(28px, 3.4vw, 48px)", fontWeight: 800,
+                  lineHeight: 1.13, marginBottom: 18, letterSpacing: -0.5,
+                }}>
+                  {s.title}
+                </h1>
+                <p style={{
+                  color: "rgba(255,255,255,0.58)", fontSize: 16, lineHeight: 1.75,
+                  marginBottom: 36, maxWidth: 450,
+                }}>
+                  {s.desc}
+                </p>
+
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <Link href={s.href} style={{
+                    background: "linear-gradient(135deg, #00c2e0, #0099b8)",
+                    color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 15,
+                    padding: "13px 26px", borderRadius: 9,
+                    boxShadow: "0 6px 22px rgba(0,194,224,0.38)",
+                    display: "flex", alignItems: "center", gap: 8, transition: "all 0.18s",
+                  }}>
+                    {s.cta} <ArrowRight size={16} />
+                  </Link>
+                  <Link href="/login" style={{
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
+                    color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600,
+                    padding: "13px 26px", borderRadius: 9, textDecoration: "none",
+                    transition: "all 0.18s",
+                  }}>
+                    Ver demo
+                  </Link>
+                </div>
               </div>
 
-              <h1 className="anim-fade-up delay-2 sc-display-font" style={{
-                color: "#fff", fontSize: "clamp(28px, 3.4vw, 48px)", fontWeight: 800,
-                lineHeight: 1.13, marginBottom: 18, letterSpacing: -0.5,
-              }}>
-                {s.title}
-              </h1>
-              <p className="anim-fade-up delay-3" style={{
-                color: "rgba(255,255,255,0.58)", fontSize: 16, lineHeight: 1.75,
-                marginBottom: 36, maxWidth: 450,
-              }}>
-                {s.desc}
-              </p>
-
-              <div className="anim-fade-up delay-4" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <Link href={s.href} style={{
-                  background: "linear-gradient(135deg, #00c2e0, #0099b8)",
-                  color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 15,
-                  padding: "13px 26px", borderRadius: 9,
-                  boxShadow: "0 6px 22px rgba(0,194,224,0.38)",
-                  display: "flex", alignItems: "center", gap: 8, transition: "all 0.18s",
-                }}>
-                  {s.cta} <ArrowRight size={16} />
-                </Link>
-                <Link href="/login" style={{
-                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)",
-                  color: "rgba(255,255,255,0.85)", fontSize: 15, fontWeight: 600,
-                  padding: "13px 26px", borderRadius: 9, textDecoration: "none",
-                  transition: "all 0.18s",
-                }}>
-                  Ver demo
-                </Link>
-              </div>
-
-              {/* Slide indicator dots */}
-              <div className="anim-fade-up delay-5" style={{ display: "flex", gap: 8, marginTop: 36 }}>
+              {/* Slide indicator dots — outside fade so they don't blink */}
+              <div style={{ display: "flex", gap: 8, marginTop: 36 }}>
                 {SLIDES.map((_, i) => (
-                  <button key={i} onClick={() => setSlide(i)} style={{
+                  <button key={i} onClick={() => goToSlide(i)} style={{
                     width: i === slide ? 28 : 7, height: 7, borderRadius: 4, border: "none",
                     cursor: "pointer",
                     background: i === slide ? "#00c2e0" : "rgba(255,255,255,0.2)",
