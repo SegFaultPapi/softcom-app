@@ -65,7 +65,7 @@ const MENU: MenuItem[] = [
   {
     href: "/valuacion",
     title: "Valuación de Instrumentos",
-    description: "Precio limpio, precio sucio, duration y rendimiento. CETES y Bonos M en tiempo real.",
+    description: "Precio por título y valor total. CETES y Bonos en tiempo real.",
     icon: Calculator,
     roles: ["gerente_cartera", "analyst"],
     color: "#00c2e0",
@@ -145,7 +145,7 @@ const ROLE_GREETING: Record<string, string> = {
 // gerente_cartera
 const donutPortafolio = [
   { name: "CETES", value: 14_823_000, color: "#00c2e0" },
-  { name: "Bonos M", value: 3_148_000, color: "#3b82f6" },
+  { name: "Bonos", value: 3_148_000, color: "#3b82f6" },
   { name: "Disponible", value: 3_028_847, color: "#e2e8f0" },
 ]
 const plMensual = [
@@ -698,8 +698,8 @@ function DashboardContent() {
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
             {[
               { dot: "#22c55e", label: "Sistema operando" },
-              { dot: "#00c2e0", label: "Motor PostgreSQL" },
-              { dot: "#3b82f6", label: "Privy Auth activo" },
+              { dot: "#00c2e0", label: "Motor de valuación" },
+              { dot: "#3b82f6", label: "Sesión activa" },
             ].map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <div style={{ width: 7, height: 7, borderRadius: "50%", background: s.dot, flexShrink: 0 }} />

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import {
   Briefcase, Download, TrendingUp, TrendingDown,
   Wallet, PieChart, BarChart2, Activity,
-  ChevronDown, ArrowUpRight, ArrowDownRight,
+  ChevronDown, ArrowUpRight, ArrowDownRight, ChevronsUpDown, ChevronUp,
 } from "lucide-react"
 import {
   PieChart as RePieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
@@ -76,7 +76,7 @@ const bonosValor = POSICIONES.filter(p => p.tipo === "BONO_M")
 
 const donutData = [
   { name: "CETES", value: cetesValor },
-  { name: "Bonos M", value: bonosValor },
+  { name: "Bonos", value: bonosValor },
 ]
 const DONUT_COLORS = ["#00c2e0", "#3b82f6"]
 
@@ -181,10 +181,39 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name:
   )
 }
 
+type SortKey = "instrumento" | "cantidad" | "precioCompra" | "precioActual" | "valorTotal" | "pl" | "vencimiento"
+type SortDir = "asc" | "desc"
+
+const TIPO_LABEL: Record<string, string> = { CETES: "CETES", BONO_M: "Bono" }
+
 // ── Main content ───────────────────────────────────────────
 function PortafolioContent() {
   const { user } = useAuth()
   const [clienteId, setClienteId] = useState("1")
+  const [sortKey, setSortKey] = useState<SortKey>("instrumento")
+  const [sortDir, setSortDir] = useState<SortDir>("asc")
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) setSortDir(d => d === "asc" ? "desc" : "asc")
+    else { setSortKey(key); setSortDir("asc") }
+  }
+
+  const sortedPosiciones = [...POSICIONES].sort((a, b) => {
+    let av: number | string, bv: number | string
+    switch (sortKey) {
+      case "instrumento":  av = a.instrumento; bv = b.instrumento; break
+      case "cantidad":     av = a.cantidad;    bv = b.cantidad;    break
+      case "precioCompra": av = a.precioCompra; bv = b.precioCompra; break
+      case "precioActual": av = a.precioActual; bv = b.precioActual; break
+      case "valorTotal":   av = a.precioActual * a.cantidad; bv = b.precioActual * b.cantidad; break
+      case "pl":           av = (a.precioActual - a.precioCompra) * a.cantidad; bv = (b.precioActual - b.precioCompra) * b.cantidad; break
+      case "vencimiento":  av = a.vencimiento; bv = b.vencimiento; break
+      default:             return 0
+    }
+    if (av < bv) return sortDir === "asc" ? -1 : 1
+    if (av > bv) return sortDir === "asc" ? 1 : -1
+    return 0
+  })
 
   if (!user) return null
   const isGerente = user.role === "gerente_cartera"
@@ -412,20 +441,45 @@ function PortafolioContent() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: "#f8fafc" }}>
-                    {["Instrumento", "Tipo", "Cantidad", "P. Compra", "P. Actual", "Valor Total", "P&L"].map(h => (
-                      <th key={h} style={{
-                        padding: "10px 14px", textAlign: h === "Instrumento" || h === "Tipo" ? "left" : "right",
-                        fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
-                        textTransform: "uppercase", color: "#94a3b8",
-                        borderBottom: "1px solid #f1f5f9",
-                      }}>
-                        {h}
+                    {([
+                      { label: "Instrumento", key: "instrumento" as SortKey, align: "left" },
+                      { label: "Tipo",        key: null,                       align: "left" },
+                      { label: "Cantidad",    key: "cantidad" as SortKey,     align: "right" },
+                      { label: "P. Compra",   key: "precioCompra" as SortKey, align: "right" },
+                      { label: "P. Actual",   key: "precioActual" as SortKey, align: "right" },
+                      { label: "Valor Total", key: "valorTotal" as SortKey,   align: "right" },
+                      { label: "P&L",         key: "pl" as SortKey,           align: "right" },
+                    ] as const).map(col => (
+                      <th
+                        key={col.label}
+                        onClick={col.key ? () => handleSort(col.key!) : undefined}
+                        style={{
+                          padding: "10px 14px", textAlign: col.align as "left" | "right",
+                          fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                          color: col.key && sortKey === col.key ? "#0b1629" : "#94a3b8",
+                          borderBottom: "1px solid #f1f5f9",
+                          cursor: col.key ? "pointer" : "default",
+                          userSelect: "none",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          {col.label}
+                          {col.key && (
+                            sortKey === col.key
+                              ? sortDir === "asc"
+                                ? <ChevronUp size={11} />
+                                : <ChevronDown size={11} />
+                              : <ChevronsUpDown size={11} style={{ opacity: 0.35 }} />
+                          )}
+                        </span>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {POSICIONES.map((p, idx) => {
+                  {sortedPosiciones.map((p, idx) => {
                     const pl = (p.precioActual - p.precioCompra) * p.cantidad
                     const isPos = pl >= 0
                     return (
@@ -456,7 +510,7 @@ function PortafolioContent() {
                             color: p.tipo === "CETES" ? "#00c2e0" : "#3b82f6",
                             border: `1px solid ${p.tipo === "CETES" ? "rgba(0,194,224,0.25)" : "rgba(59,130,246,0.25)"}`,
                           }}>
-                            {p.tipo}
+                            {TIPO_LABEL[p.tipo] ?? p.tipo}
                           </span>
                         </td>
                         <td className="sc-number" style={{ padding: "13px 14px", textAlign: "right", fontSize: 13, color: "#0b1629" }}>

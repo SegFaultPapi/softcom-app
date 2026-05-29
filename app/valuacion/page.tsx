@@ -95,6 +95,56 @@ function FinInput({
   )
 }
 
+// ── Input that validates on blur ────────────────────────────
+function FinInputBlur({
+  id, label, value, onChange, onBlurValidate, suffix, help, step = "any", min,
+}: {
+  id: string; label: string; value: string; onChange: (v: string) => void
+  onBlurValidate: (v: string) => void
+  suffix?: string; help?: string; step?: string; min?: string
+}) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <label htmlFor={id} style={{
+        fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
+        textTransform: "uppercase", color: "#64748b",
+      }}>
+        {label}
+      </label>
+      <div style={{ position: "relative" }}>
+        <input
+          id={id} type="number" step={step} min={min}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => { setFocused(false); onBlurValidate(value) }}
+          style={{
+            width: "100%", boxSizing: "border-box",
+            padding: suffix ? "10px 44px 10px 14px" : "10px 14px",
+            borderRadius: 8,
+            border: `1.5px solid ${focused ? "#00c2e0" : "#e2e8f0"}`,
+            outline: "none", fontSize: 15,
+            fontFamily: "'IBM Plex Mono', monospace",
+            color: "#0b1629", background: "#fff",
+            transition: "border-color 0.15s",
+            boxShadow: focused ? "0 0 0 3px rgba(0,194,224,0.1)" : "none",
+          }}
+        />
+        {suffix && (
+          <span style={{
+            position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+            fontSize: 12, fontWeight: 600, color: "#94a3b8", pointerEvents: "none",
+          }}>
+            {suffix}
+          </span>
+        )}
+      </div>
+      {help && <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{help}</p>}
+    </div>
+  )
+}
+
 // ── Static field (non-editable) ─────────────────────────────
 function StaticField({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -367,18 +417,15 @@ function BonoForm() {
           </div>
 
           <div>
-            <FinInput
-              id="b-anios" label="Años" value={anios} onChange={v => {
+            <FinInputBlur
+              id="b-anios" label="Años" value={anios} onChange={setAnios}
+              onBlurValidate={v => {
                 const n = parseInt(v, 10)
-                if (v === "" || (n > 1 && Number.isInteger(n))) setAnios(v === "" ? "" : String(n))
+                if (v !== "" && (isNaN(n) || n <= 1 || !Number.isInteger(n))) setAnios("")
+                else if (v !== "") setAnios(String(n))
               }}
               help="Plazo en años — entero mayor a 1" min="2" step="1"
             />
-            {anios !== "" && !aniosValido && (
-              <p style={{ fontSize: 12, color: "#ef4444", margin: "4px 0 0" }}>
-                Debe ser un número entero mayor a 1.
-              </p>
-            )}
             <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 11, color: "#94a3b8", alignSelf: "center", marginRight: 4 }}>Rápido:</span>
               {[3, 5, 7, 10].map(a => (
