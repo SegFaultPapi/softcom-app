@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { MoreHorizontal, Plus, Pencil, Trash2, Users } from "lucide-react"
+import { useEffect, useState } from "react"
+import { MoreHorizontal, Plus, Pencil, Trash2, Users, Loader2 } from "lucide-react"
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
 import type { Role } from "@/lib/auth-context"
@@ -46,9 +46,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 type UsuarioRow = {
-  id: string
-  nombre: string
   email: string
+  nombre: string
   role: Role
 }
 
@@ -67,12 +66,22 @@ export default function AdminUsuariosPage() {
 }
 
 function AdminUsuariosContent() {
+  const [usuarios, setUsuarios] = useState<UsuarioRow[]>([])
+  const [loading, setLoading] = useState(true)
   const [openForm, setOpenForm] = useState(false)
   const [editing, setEditing] = useState<UsuarioRow | null>(null)
   const [toDelete, setToDelete] = useState<UsuarioRow | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
-  // Placeholder: en el MVP vendrá del backend
-  const usuarios: UsuarioRow[] = []
+  async function fetchUsuarios() {
+    setLoading(true)
+    const res = await fetch("/api/admin/usuarios")
+    const data = await res.json()
+    setUsuarios(data)
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchUsuarios() }, [])
 
   const handleNew = () => {
     setEditing(null)
@@ -82,6 +91,17 @@ function AdminUsuariosContent() {
   const handleEdit = (u: UsuarioRow) => {
     setEditing(u)
     setOpenForm(true)
+  }
+
+  const handleDelete = async () => {
+    if (!toDelete) return
+    setDeleting(true)
+    await fetch(`/api/admin/usuarios/${encodeURIComponent(toDelete.email)}`, {
+      method: "DELETE",
+    })
+    setToDelete(null)
+    setDeleting(false)
+    fetchUsuarios()
   }
 
   return (
@@ -116,7 +136,13 @@ function AdminUsuariosContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {usuarios.length === 0 ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-10 text-center">
+                      <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ) : usuarios.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="p-0">
                       <Empty className="border-0">
@@ -132,8 +158,10 @@ function AdminUsuariosContent() {
                   </TableRow>
                 ) : (
                   usuarios.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.nombre}</TableCell>
+                    <TableRow key={u.email}>
+                      <TableCell className="font-medium">
+                        {u.nombre || u.email.split("@")[0]}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{u.email}</TableCell>
                       <TableCell>
                         <Badge variant="secondary">{ROLE_LABEL[u.role]}</Badge>
@@ -141,7 +169,7 @@ function AdminUsuariosContent() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" aria-label={`Acciones para ${u.nombre}`}>
+                            <Button variant="ghost" size="icon" aria-label={`Acciones para ${u.email}`}>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -169,20 +197,28 @@ function AdminUsuariosContent() {
         </CardContent>
       </Card>
 
-      <UsuarioFormDialog open={openForm} onOpenChange={setOpenForm} usuario={editing} />
+      <UsuarioFormDialog
+        open={openForm}
+        onOpenChange={setOpenForm}
+        usuario={editing}
+        onSuccess={fetchUsuarios}
+      />
 
       <AlertDialog open={Boolean(toDelete)} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará la cuenta de{" "}
-              <span className="font-medium">{toDelete?.nombre}</span> y sus accesos al sistema.
+              Esta acción no se puede deshacer. Se eliminará el acceso de{" "}
+              <span className="font-medium">{toDelete?.email}</span> al sistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => setToDelete(null)}>Eliminar</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} disabled={deleting}>
+              {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Eliminar
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -194,12 +230,61 @@ function UsuarioFormDialog({
   open,
   onOpenChange,
   usuario,
+  onSuccess,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   usuario: UsuarioRow | null
+  onSuccess: () => void
 }) {
   const esEdicion = Boolean(usuario)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [nombre, setNombre] = useState(usuario?.nombre ?? "")
+  const [email, setEmail] = useState(usuario?.email ?? "")
+  const [role, setRole] = useState<Role>(usuario?.role ?? "analyst")
+
+  useEffect(() => {
+    if (open) {
+      setNombre(usuario?.nombre ?? "")
+      setEmail(usuario?.email ?? "")
+      setRole(usuario?.role ?? "analyst")
+      setError(null)
+    }
+  }, [open, usuario])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+
+    let res: Response
+    if (esEdicion) {
+      res = await fetch(`/api/admin/usuarios/${encodeURIComponent(usuario!.email)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, nombre }),
+      })
+    } else {
+      res = await fetch("/api/admin/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role, nombre }),
+      })
+    }
+
+    const data = await res.json()
+    setSaving(false)
+
+    if (!res.ok) {
+      setError(data.error ?? "Error al guardar")
+      return
+    }
+
+    onOpenChange(false)
+    onSuccess()
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -208,31 +293,38 @@ function UsuarioFormDialog({
           <DialogTitle>{esEdicion ? "Editar usuario" : "Nuevo usuario"}</DialogTitle>
           <DialogDescription>
             {esEdicion
-              ? "Actualiza la información y el rol del usuario."
+              ? "Actualiza el nombre y el rol del usuario."
               : "Registra un nuevo usuario y asígnale un rol en el sistema."}
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            onOpenChange(false)
-          }}
-        >
+        <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="u-nombre">Nombre completo</FieldLabel>
-              <Input id="u-nombre" type="text" defaultValue={usuario?.nombre ?? ""} required />
+              <Input
+                id="u-nombre"
+                type="text"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+              />
             </Field>
 
             <Field>
               <FieldLabel htmlFor="u-email">Correo electrónico</FieldLabel>
-              <Input id="u-email" type="email" defaultValue={usuario?.email ?? ""} required />
+              <Input
+                id="u-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={esEdicion}
+                required
+              />
             </Field>
 
             <Field>
               <FieldLabel htmlFor="u-rol">Rol</FieldLabel>
-              <Select defaultValue={usuario?.role ?? "analyst"}>
+              <Select value={role} onValueChange={(v) => setRole(v as Role)}>
                 <SelectTrigger id="u-rol">
                   <SelectValue />
                 </SelectTrigger>
@@ -243,20 +335,20 @@ function UsuarioFormDialog({
                 </SelectContent>
               </Select>
             </Field>
-
-            {!esEdicion && (
-              <Field>
-                <FieldLabel htmlFor="u-password">Contraseña temporal</FieldLabel>
-                <Input id="u-password" type="password" required />
-              </Field>
-            )}
           </FieldGroup>
+
+          {error && (
+            <p className="mt-3 text-sm text-destructive">{error}</p>
+          )}
 
           <DialogFooter className="mt-6">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">{esEdicion ? "Guardar cambios" : "Crear usuario"}</Button>
+            <Button type="submit" disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {esEdicion ? "Guardar cambios" : "Crear usuario"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -2,11 +2,9 @@
 
 import { useState, useMemo } from "react"
 import {
-  TrendingUp, TrendingDown, Minus,
-  ShoppingCart, Banknote, RotateCcw,
-  ChevronRight, Info, Zap,
+  TrendingUp, TrendingDown,
+  RotateCcw, Zap,
 } from "lucide-react"
-import Link from "next/link"
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
 import { Separator } from "@/components/ui/separator"
@@ -18,7 +16,6 @@ const fmtMXN = (n: number, dec = 4) =>
     minimumFractionDigits: dec, maximumFractionDigits: dec,
   }).format(n)
 
-const fmtPct = (n: number) => `${n.toFixed(4)}%`
 const fmtInt = (n: number) =>
   new Intl.NumberFormat("es-MX").format(Math.round(n))
 
@@ -28,12 +25,11 @@ function calcCetes(F: number, r: number, N: number, cantidad: number) {
   const rDec = r / 100
   const precioUnitario = F / Math.pow(1 + rDec, N / 360)
   const precioTotal = precioUnitario * cantidad
-  const descuento = ((F - precioUnitario) / F) * 100
-  const rendimiento = ((F - precioUnitario) / precioUnitario) * (360 / N) * 100
-  return { precioUnitario, precioTotal, descuento, rendimiento }
+  return { precioUnitario, precioTotal }
 }
 
-function calcBonoM(F: number, tasaCupon: number, r: number, N: number, cantidad: number) {
+function calcBono(F: number, tasaCupon: number, r: number, anios: number, cantidad: number) {
+  const N = anios * 2
   if (!F || !tasaCupon || !r || !N || !cantidad || N <= 0) return null
   const rSem = r / 100 / 2
   const A = (F * tasaCupon) / 100 / 2
@@ -44,16 +40,15 @@ function calcBonoM(F: number, tasaCupon: number, r: number, N: number, cantidad:
     precio = (A * (1 - Math.pow(1 + rSem, -N))) / rSem + F / Math.pow(1 + rSem, N)
   }
   const precioTotal = precio * cantidad
-  const duracionAnios = N / 2
-  return { precio, cuponSemestral: A, precioTotal, duracion: N, duracionAnios }
+  return { precio, cuponSemestral: A, precioTotal, anios }
 }
 
 // ── Input component ─────────────────────────────────────────
 function FinInput({
-  id, label, value, onChange, suffix, help, type = "number", step = "any", min,
+  id, label, value, onChange, suffix, help, step = "any", min,
 }: {
   id: string; label: string; value: string | number; onChange: (v: string) => void
-  suffix?: string; help?: string; type?: string; step?: string; min?: string
+  suffix?: string; help?: string; step?: string; min?: string
 }) {
   const [focused, setFocused] = useState(false)
   return (
@@ -66,7 +61,7 @@ function FinInput({
       </label>
       <div style={{ position: "relative" }}>
         <input
-          id={id} type={type} step={step} min={min}
+          id={id} type="number" step={step} min={min}
           value={value}
           onChange={e => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
@@ -100,6 +95,33 @@ function FinInput({
   )
 }
 
+// ── Static field (non-editable) ─────────────────────────────
+function StaticField({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{
+        fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
+        textTransform: "uppercase", color: "#64748b",
+      }}>
+        {label}
+      </span>
+      <div style={{
+        padding: "10px 14px", borderRadius: 8,
+        border: "1.5px solid #e2e8f0",
+        background: "#f8fafc",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <span style={{ fontSize: 15, fontFamily: "'IBM Plex Mono', monospace", color: "#0b1629", fontWeight: 600 }}>
+          {value}
+        </span>
+        {sub && (
+          <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>{sub}</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Metric row in result panel ──────────────────────────────
 function MetricRow({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
   return (
@@ -119,50 +141,81 @@ function MetricRow({ label, value, highlight = false }: { label: string; value: 
   )
 }
 
-// ── Quick preset button ─────────────────────────────────────
-function Preset({ label, onClick }: { label: string; onClick: () => void }) {
+// ── CETES días selector ─────────────────────────────────────
+const CETES_DIAS = [28, 91, 182, 360]
+
+function DiasSelector({ value, onChange }: { value: number; onChange: (d: number) => void }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{
+        fontSize: 12, fontWeight: 600, letterSpacing: "0.06em",
+        textTransform: "uppercase", color: "#64748b",
+      }}>
+        Plazo (días)
+      </span>
+      <div style={{ display: "flex", gap: 8 }}>
+        {CETES_DIAS.map(d => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => onChange(d)}
+            style={{
+              flex: 1, padding: "10px 0", borderRadius: 8,
+              border: `1.5px solid ${value === d ? "#00c2e0" : "#e2e8f0"}`,
+              background: value === d ? "rgba(0,194,224,0.08)" : "#fff",
+              color: value === d ? "#00c2e0" : "#64748b",
+              fontSize: 13, fontWeight: 700,
+              fontFamily: "'IBM Plex Mono', monospace",
+              cursor: "pointer", transition: "all 0.15s",
+            }}
+          >
+            {d}d
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Limpiar button ──────────────────────────────────────────
+function LimpiarBtn({ onClick }: { onClick: () => void }) {
+  const [hover, setHover] = useState(false)
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       style={{
-        padding: "5px 12px", borderRadius: 6,
-        border: "1.5px solid #e2e8f0", background: "#f8fafc",
-        fontSize: 12, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace",
-        color: "#0b1629", cursor: "pointer",
-        transition: "all 0.15s",
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = "#00c2e0"
-        e.currentTarget.style.background = "rgba(0,194,224,0.06)"
-        e.currentTarget.style.color = "#00c2e0"
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = "#e2e8f0"
-        e.currentTarget.style.background = "#f8fafc"
-        e.currentTarget.style.color = "#0b1629"
+        display: "flex", alignItems: "center", gap: 5,
+        border: `1.5px solid ${hover ? "#00c2e0" : "#e2e8f0"}`,
+        borderRadius: 7, padding: "6px 12px",
+        background: hover ? "rgba(0,194,224,0.06)" : "#fff",
+        fontSize: 12, fontWeight: 600,
+        color: hover ? "#00c2e0" : "#64748b",
+        cursor: "pointer", transition: "all 0.15s",
       }}
     >
-      {label}
+      <RotateCcw size={12} />
+      Limpiar campos
     </button>
   )
 }
 
 // ── CETES Form ──────────────────────────────────────────────
+const CETES_VN = 10
+const CETES_TASA = 6.5
+
 function CetesForm() {
-  const [F, setF]         = useState("10")
-  const [r, setR]         = useState("11.25")
-  const [N, setN]         = useState("91")
-  const [qty, setQty]     = useState("100000")
+  const [dias, setDias] = useState(91)
+  const [qty, setQty]   = useState("")
 
   const res = useMemo(
-    () => calcCetes(parseFloat(F), parseFloat(r), parseFloat(N), parseFloat(qty)),
-    [F, r, N, qty]
+    () => calcCetes(CETES_VN, CETES_TASA, dias, parseFloat(qty)),
+    [dias, qty]
   )
 
-  const handleReset = () => { setF("10"); setR("11.25"); setN("91"); setQty("100000") }
-
-  const isPositive = res && res.rendimiento > 0
+  const handleReset = () => { setQty("") }
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
@@ -178,64 +231,30 @@ function CetesForm() {
               Parámetros CETES
             </p>
             <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>
-              Cupón cero — <span className="sc-number">P = F / (1+r)^(N/360)</span>
+              Cupón cero — descuento puro
             </p>
           </div>
-          <button
-            type="button" onClick={handleReset}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              background: "none", border: "1px solid #e2e8f0", borderRadius: 6,
-              padding: "5px 10px", fontSize: 12, color: "#94a3b8", cursor: "pointer",
-            }}
-          >
-            <RotateCcw size={11} />
-            Limpiar
-          </button>
+          <LimpiarBtn onClick={handleReset} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <FinInput id="c-F" label="Valor nominal (F)" value={F} onChange={setF} suffix="MXN"
-              help="Por título, típico: $10" />
-            <FinInput id="c-qty" label="Número de títulos" value={qty} onChange={setQty}
-              help="Cantidad a operar" />
+            <StaticField label="Valor nominal (VN)" value="$10.00" sub="MXN" />
+            <StaticField label="Tasa de referencia" value="6.5%" sub="Banxico" />
           </div>
 
-          <div>
-            <FinInput id="c-r" label="Tasa de descuento (r)" value={r} onChange={setR} suffix="%"
-              help="Tasa de referencia Banxico" />
-          </div>
+          <DiasSelector value={dias} onChange={setDias} />
 
-          <div>
-            <FinInput id="c-N" label="Plazo (días)" value={N} onChange={setN}
-              help="Días al vencimiento" />
-            <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 11, color: "#94a3b8", alignSelf: "center", marginRight: 4 }}>Rápido:</span>
-              {[28, 91, 182, 364].map(d => (
-                <Preset key={d} label={`${d}d`} onClick={() => setN(String(d))} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div style={{
-          marginTop: 20, padding: "12px 14px",
-          background: "rgba(0,194,224,0.05)", border: "1px solid rgba(0,194,224,0.15)",
-          borderRadius: 8, display: "flex", gap: 8, alignItems: "flex-start",
-        }}>
-          <Info size={13} color="#00c2e0" style={{ marginTop: 1, flexShrink: 0 }} />
-          <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-            La tasa de referencia Banxico es <strong className="sc-number">11.25%</strong> anual.
-            Ajústala si la tasa de mercado difiere en la subasta del día.
-          </p>
+          <FinInput
+            id="c-qty" label="Número de títulos" value={qty} onChange={setQty}
+            help="Cantidad a adquirir" min="1" step="1"
+          />
         </div>
       </div>
 
       {/* ── Right: Live Results ── */}
-      <div className="sc-result-panel" style={{ padding: "28px 24px", minHeight: 360 }}>
+      <div className="sc-result-panel" style={{ padding: "28px 24px", minHeight: 320 }}>
         <div style={{ position: "relative", zIndex: 1 }}>
-          {/* Header */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <div style={{
               width: 28, height: 28, borderRadius: 7,
@@ -251,10 +270,9 @@ function CetesForm() {
 
           {res ? (
             <>
-              {/* Main price */}
-              <div style={{ marginBottom: 6 }}>
+              <div style={{ marginBottom: 24 }}>
                 <p className="sc-metric-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
-                  Precio unitario
+                  Precio por título
                 </p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <span className="sc-price-xl" style={{ color: "#fff" }}>
@@ -264,69 +282,16 @@ function CetesForm() {
                 </div>
               </div>
 
-              {/* Rendimiento badge */}
-              <div style={{
-                display: "inline-flex", alignItems: "center", gap: 6,
-                background: isPositive ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-                border: `1px solid ${isPositive ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                borderRadius: 20, padding: "3px 10px", marginBottom: 24,
-              }}>
-                {isPositive
-                  ? <TrendingUp size={12} color="#22c55e" />
-                  : <TrendingDown size={12} color="#ef4444" />
-                }
-                <span style={{
-                  fontSize: 12, fontWeight: 600,
-                  color: isPositive ? "#22c55e" : "#ef4444",
-                  fontFamily: "'IBM Plex Mono', monospace",
-                }}>
-                  {fmtPct(res.rendimiento)} rendimiento
-                </span>
-              </div>
-
               <Separator style={{ background: "rgba(255,255,255,0.1)", marginBottom: 16 }} />
 
-              {/* Metrics */}
               <MetricRow label="Precio total" value={fmtMXN(res.precioTotal, 2)} highlight />
               <MetricRow label="Títulos" value={fmtInt(parseFloat(qty))} />
-              <MetricRow label="Descuento implícito" value={fmtPct(res.descuento)} />
-              <MetricRow label="Rendimiento anualizado" value={fmtPct(res.rendimiento)} />
-              <MetricRow label="Plazo" value={`${N} días`} />
-
-              {/* Action buttons */}
-              <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-                <Link href="/operaciones" style={{ flex: 1, textDecoration: "none" }}>
-                  <button style={{
-                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                    padding: "11px 0", borderRadius: 9,
-                    background: "linear-gradient(135deg, #22c55e, #16a34a)",
-                    border: "none", color: "#fff", fontSize: 13, fontWeight: 700,
-                    cursor: "pointer", transition: "all 0.15s",
-                    boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
-                  }}>
-                    <ShoppingCart size={14} />
-                    Registrar Compra
-                  </button>
-                </Link>
-                <Link href="/operaciones" style={{ flex: 1, textDecoration: "none" }}>
-                  <button style={{
-                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                    padding: "11px 0", borderRadius: 9,
-                    background: "rgba(239,68,68,0.15)",
-                    border: "1px solid rgba(239,68,68,0.35)",
-                    color: "#ef4444", fontSize: 13, fontWeight: 700,
-                    cursor: "pointer", transition: "all 0.15s",
-                  }}>
-                    <Banknote size={14} />
-                    Registrar Venta
-                  </button>
-                </Link>
-              </div>
+              <MetricRow label="Plazo" value={`${dias} días`} />
             </>
           ) : (
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              minHeight: 260, gap: 12,
+              minHeight: 220, gap: 12,
             }}>
               <div style={{
                 width: 56, height: 56, borderRadius: 14,
@@ -336,7 +301,7 @@ function CetesForm() {
                 <TrendingUp size={22} color="rgba(0,194,224,0.5)" />
               </div>
               <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 14, textAlign: "center", margin: 0 }}>
-                Ingresa los parámetros para ver el resultado.
+                Ingresa el número de títulos para ver el resultado.
               </p>
             </div>
           )}
@@ -346,24 +311,26 @@ function CetesForm() {
   )
 }
 
-// ── Bono M Form ─────────────────────────────────────────────
-function BonoMForm() {
+// ── Bono Form ───────────────────────────────────────────────
+function BonoForm() {
   const [F, setF]         = useState("100")
   const [cupon, setCupon] = useState("8.50")
-  const [r, setR]         = useState("11.25")
-  const [N, setN]         = useState("10")
-  const [qty, setQty]     = useState("10000")
+  const [r, setR]         = useState("6.50")
+  const [anios, setAnios] = useState("")
+  const [qty, setQty]     = useState("")
 
   const res = useMemo(
-    () => calcBonoM(parseFloat(F), parseFloat(cupon), parseFloat(r), parseFloat(N), parseFloat(qty)),
-    [F, cupon, r, N, qty]
+    () => calcBono(parseFloat(F), parseFloat(cupon), parseFloat(r), parseFloat(anios), parseFloat(qty)),
+    [F, cupon, r, anios, qty]
   )
 
-  const handleReset = () => {
-    setF("100"); setCupon("8.50"); setR("11.25"); setN("10"); setQty("10000")
-  }
+  const handleReset = () => { setAnios(""); setQty("") }
 
-  const premiumOrDiscount = res ? (res.precio > parseFloat(F) ? "premium" : "descuento") : null
+  const VN = parseFloat(F)
+  const premiumOrDiscount = res ? (res.precio > VN ? "premium" : "descuento") : null
+
+  const aniosNum = parseInt(anios, 10)
+  const aniosValido = !isNaN(aniosNum) && aniosNum > 1
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
@@ -376,66 +343,68 @@ function BonoMForm() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
             <p className="sc-display-font" style={{ fontSize: 16, fontWeight: 700, color: "#0b1629", margin: 0 }}>
-              Parámetros Bono M
+              Parámetros Bono
             </p>
             <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>
               Tasa fija — pagos semestrales
             </p>
           </div>
-          <button
-            type="button" onClick={handleReset}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              background: "none", border: "1px solid #e2e8f0", borderRadius: 6,
-              padding: "5px 10px", fontSize: 12, color: "#94a3b8", cursor: "pointer",
-            }}
-          >
-            <RotateCcw size={11} />
-            Limpiar
-          </button>
+          <LimpiarBtn onClick={handleReset} />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <FinInput id="bm-F" label="Valor nominal (F)" value={F} onChange={setF} suffix="MXN"
+            <FinInput id="b-F" label="Valor nominal (VN)" value={F} onChange={setF} suffix="MXN"
               help="Por título, típico: $100" />
-            <FinInput id="bm-qty" label="Número de títulos" value={qty} onChange={setQty}
-              help="Cantidad a operar" />
+            <FinInput id="b-qty" label="Número de títulos" value={qty} onChange={setQty}
+              help="Cantidad a adquirir" min="1" step="1" />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <FinInput id="bm-cupon" label="Tasa cupón anual" value={cupon} onChange={setCupon} suffix="%"
+            <FinInput id="b-cupon" label="Tasa cupón anual" value={cupon} onChange={setCupon} suffix="%"
               help="Tasa nominal del instrumento" />
-            <FinInput id="bm-r" label="Tasa de descuento" value={r} onChange={setR} suffix="%"
-              help="Tasa de referencia Banxico" />
+            <FinInput id="b-r" label="Tasa de descuento" value={r} onChange={setR} suffix="%"
+              help="Tasa de mercado" />
           </div>
 
           <div>
-            <FinInput id="bm-N" label="Períodos semestrales (N)" value={N} onChange={setN}
-              help="Número de pagos de cupón" />
+            <FinInput
+              id="b-anios" label="Años" value={anios} onChange={v => {
+                const n = parseInt(v, 10)
+                if (v === "" || (n > 1 && Number.isInteger(n))) setAnios(v === "" ? "" : String(n))
+              }}
+              help="Plazo en años — entero mayor a 1" min="2" step="1"
+            />
+            {anios !== "" && !aniosValido && (
+              <p style={{ fontSize: 12, color: "#ef4444", margin: "4px 0 0" }}>
+                Debe ser un número entero mayor a 1.
+              </p>
+            )}
             <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 11, color: "#94a3b8", alignSelf: "center", marginRight: 4 }}>Rápido:</span>
-              {[{ label: "3A", val: "6" }, { label: "5A", val: "10" }, { label: "7A", val: "14" }, { label: "10A", val: "20" }].map(p => (
-                <Preset key={p.val} label={p.label} onClick={() => setN(p.val)} />
+              {[3, 5, 7, 10].map(a => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => setAnios(String(a))}
+                  style={{
+                    padding: "5px 12px", borderRadius: 6,
+                    border: `1.5px solid ${aniosNum === a ? "#00c2e0" : "#e2e8f0"}`,
+                    background: aniosNum === a ? "rgba(0,194,224,0.06)" : "#f8fafc",
+                    fontSize: 12, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace",
+                    color: aniosNum === a ? "#00c2e0" : "#0b1629", cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {a}A
+                </button>
               ))}
             </div>
           </div>
         </div>
-
-        <div style={{
-          marginTop: 20, padding: "12px 14px",
-          background: "rgba(0,194,224,0.05)", border: "1px solid rgba(0,194,224,0.15)",
-          borderRadius: 8, display: "flex", gap: 8, alignItems: "flex-start",
-        }}>
-          <Info size={13} color="#00c2e0" style={{ marginTop: 1, flexShrink: 0 }} />
-          <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.5 }}>
-            Si la tasa de mercado {">"} tasa cupón, el bono cotiza a
-            {" "}<strong>descuento</strong>. Si {"<"}, cotiza a <strong>premio</strong>.
-          </p>
-        </div>
       </div>
 
       {/* ── Right: Live Results ── */}
-      <div className="sc-result-panel" style={{ padding: "28px 24px", minHeight: 400 }}>
+      <div className="sc-result-panel" style={{ padding: "28px 24px", minHeight: 360 }}>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <div style={{
@@ -454,7 +423,7 @@ function BonoMForm() {
             <>
               <div style={{ marginBottom: 6 }}>
                 <p className="sc-metric-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
-                  Precio sucio (P)
+                  Precio por título
                 </p>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
                   <span className="sc-price-xl" style={{ color: "#fff" }}>
@@ -485,50 +454,21 @@ function BonoMForm() {
                 }}>
                   {premiumOrDiscount === "premium" ? "Sobre par" : "Bajo par"}
                   {" — "}
-                  {fmtMXN(Math.abs(res.precio - parseFloat(F)), 4)} vs nominal
+                  {fmtMXN(Math.abs(res.precio - VN), 4)} vs nominal
                 </span>
               </div>
 
               <Separator style={{ background: "rgba(255,255,255,0.1)", marginBottom: 16 }} />
 
               <MetricRow label="Precio total" value={fmtMXN(res.precioTotal, 2)} highlight />
-              <MetricRow label="Cupón semestral (A)" value={fmtMXN(res.cuponSemestral, 4)} />
+              <MetricRow label="Cupón semestral" value={fmtMXN(res.cuponSemestral, 4)} />
               <MetricRow label="Títulos" value={fmtInt(parseFloat(qty))} />
-              <MetricRow label="Duración" value={`${N} períodos`} />
-              <MetricRow label="Duración en años" value={`${res.duracionAnios.toFixed(1)} años`} />
-
-              <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-                <Link href="/operaciones" style={{ flex: 1, textDecoration: "none" }}>
-                  <button style={{
-                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                    padding: "11px 0", borderRadius: 9,
-                    background: "linear-gradient(135deg, #22c55e, #16a34a)",
-                    border: "none", color: "#fff", fontSize: 13, fontWeight: 700,
-                    cursor: "pointer", boxShadow: "0 4px 14px rgba(34,197,94,0.3)",
-                  }}>
-                    <ShoppingCart size={14} />
-                    Registrar Compra
-                  </button>
-                </Link>
-                <Link href="/operaciones" style={{ flex: 1, textDecoration: "none" }}>
-                  <button style={{
-                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                    padding: "11px 0", borderRadius: 9,
-                    background: "rgba(239,68,68,0.15)",
-                    border: "1px solid rgba(239,68,68,0.35)",
-                    color: "#ef4444", fontSize: 13, fontWeight: 700,
-                    cursor: "pointer",
-                  }}>
-                    <Banknote size={14} />
-                    Registrar Venta
-                  </button>
-                </Link>
-              </div>
+              <MetricRow label="Duración" value={`${res.anios} años`} />
             </>
           ) : (
             <div style={{
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              minHeight: 300, gap: 12,
+              minHeight: 260, gap: 12,
             }}>
               <div style={{
                 width: 56, height: 56, borderRadius: 14,
@@ -550,13 +490,12 @@ function BonoMForm() {
 
 // ── Tab switcher ────────────────────────────────────────────
 function ValuacionContent() {
-  const [tab, setTab] = useState<"cetes" | "bono_m">("cetes")
+  const [tab, setTab] = useState<"cetes" | "bono">("cetes")
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4f8 0%,#e8eef5 100%)" }}>
       <PageHeader
         title="Valuación de instrumentos"
-        description="Parámetros → precio calculado en tiempo real. Tasa Banxico precargada: 11.25%"
         tag="Motor de valuación"
         crumbs={[
           { label: "Inicio", href: "/dashboard" },
@@ -565,12 +504,11 @@ function ValuacionContent() {
       />
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 48px" }}>
-        {/* Tab selector */}
         <div style={{
           display: "inline-flex", background: "#fff", border: "1px solid #e2e8f0",
           borderRadius: 10, padding: 4, marginBottom: 24, gap: 4,
         }}>
-          {(["cetes", "bono_m"] as const).map(t => (
+          {(["cetes", "bono"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -583,40 +521,12 @@ function ValuacionContent() {
                 boxShadow: tab === t ? "0 2px 8px rgba(11,22,41,0.2)" : "none",
               }}
             >
-              {t === "cetes" ? "CETES — Cupón Cero" : "Bono M — Tasa Fija"}
+              {t === "cetes" ? "CETES — Cupón Cero" : "Bono — Tasa Fija"}
             </button>
           ))}
         </div>
 
-        {tab === "cetes" ? <CetesForm /> : <BonoMForm />}
-
-        {/* Formula reference */}
-        <div style={{
-          marginTop: 24, padding: "16px 20px",
-          background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0",
-          display: "flex", gap: 32, flexWrap: "wrap",
-        }}>
-          <div>
-            <p className="sc-metric-label" style={{ color: "#94a3b8", marginBottom: 6 }}>Fórmula CETES</p>
-            <code className="sc-number" style={{ fontSize: 13, color: "#0b1629" }}>
-              P = F / (1 + r)^(N/360)
-            </code>
-          </div>
-          <div style={{ width: 1, background: "#e2e8f0", alignSelf: "stretch" }} />
-          <div>
-            <p className="sc-metric-label" style={{ color: "#94a3b8", marginBottom: 6 }}>Fórmula Bono M</p>
-            <code className="sc-number" style={{ fontSize: 13, color: "#0b1629" }}>
-              P = A×[1-(1+r)^-N/r] + F/(1+r)^N
-            </code>
-          </div>
-          <div style={{ width: 1, background: "#e2e8f0", alignSelf: "stretch" }} />
-          <div>
-            <p className="sc-metric-label" style={{ color: "#94a3b8", marginBottom: 6 }}>Cupón semestral (A)</p>
-            <code className="sc-number" style={{ fontSize: 13, color: "#0b1629" }}>
-              A = F × (tasa_cupón / 2)
-            </code>
-          </div>
-        </div>
+        {tab === "cetes" ? <CetesForm /> : <BonoForm />}
       </div>
     </div>
   )
