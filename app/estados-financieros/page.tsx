@@ -31,7 +31,6 @@ function EstadosFinancierosContent() {
           { label: "Inicio", href: "/dashboard" },
           { label: "Estados Financieros" },
         ]}
-        tag="Análisis contable"
         actions={
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />

@@ -186,20 +186,11 @@ function OperacionesContent() {
   useEffect(() => {
     async function cargarCatalogos() {
       try {
-        // Instrumentos
-        const { data: dbInstr, error: errInstr } = await supabase
-          .from("instrumento")
-          .select("id_instrumento, tipo, serie, tasa, fecha_vencimiento, valor_nominal")
-          .order("id_instrumento")
-
-        // Portafolios + empresas
-        const { data: dbPortafolios, error: errPort } = await supabase
-          .from("portafolio")
-          .select("id_portafolio, saldo_efectivo, empresa(id_empresa, nombre)")
-          .order("id_portafolio")
-
-        const hayInstr = !errInstr && dbInstr && dbInstr.length > 0
-        const hayPort = !errPort && dbPortafolios && dbPortafolios.length > 0
+        const res = await fetch("/api/operaciones/catalogos", { cache: "no-store" })
+        if (!res.ok) throw new Error(`catalogos ${res.status}`)
+        const { instrumentos: dbInstr, portafolios: dbPortafolios } = await res.json()
+        const hayInstr = dbInstr?.length > 0
+        const hayPort = dbPortafolios?.length > 0
 
         setDbConectado(true)
 
@@ -254,46 +245,25 @@ function OperacionesContent() {
   const cargarTransacciones = useCallback(async () => {
     setLoadingTx(true)
     try {
-      const { data, error } = await supabase
-        .from("transaccion")
-        .select(`
-          id_transaccion,
-          tipo_operacion,
-          cantidad,
-          monto_total,
-          precio_sucio,
-          fecha,
-          instrumento:id_instrumento ( tipo, serie, tasa ),
-          portafolio:id_portafolio ( empresa:id_empresa ( nombre ) )
-        `)
-        .order("fecha", { ascending: false })
-        .limit(20)
-
-      if (error) throw error
-
-      const rows: TransaccionRow[] = ((data ?? []) as Array<{
-        id_transaccion: number
-        tipo_operacion: string
-        cantidad: number
-        monto_total: number
-        precio_sucio: number | null
-        fecha: string
+      const txRes = await fetch("/api/operaciones", { cache: "no-store" })
+      if (!txRes.ok) throw new Error(`operaciones ${txRes.status}`)
+      const data: Array<{
+        id_transaccion: number; tipo_operacion: string; cantidad: number
+        monto_total: number; precio_sucio: number | null; fecha: string
         instrumento: { tipo: string; serie: string; tasa: number | null } | null
         portafolio: { empresa: { nombre: string } | null } | null
-      }>).map(r => ({
+      }> = await txRes.json()
+      const rows: TransaccionRow[] = (data ?? []).map(r => ({
         id: r.id_transaccion,
         tipo_operacion: r.tipo_operacion,
         cantidad: r.cantidad,
         monto_total: r.monto_total,
         precio_sucio: r.precio_sucio,
         fecha: r.fecha,
-        instrumento_label: r.instrumento
-          ? buildInstrLabelSimple(r.instrumento)
-          : "—",
+        instrumento_label: r.instrumento ? buildInstrLabelSimple(r.instrumento) : "—",
         instrumento_tipo: r.instrumento?.tipo?.toUpperCase() ?? "—",
         empresa_nombre: r.portafolio?.empresa?.nombre ?? "—",
       }))
-
       setTransacciones(rows)
     } catch {
       // Sin datos o sin acceso → tabla vacía
@@ -353,22 +323,24 @@ function OperacionesContent() {
     setConfirmError(null)
 
     if (!usandoMock && instrumento?.dbId && cliente?.dbPortafolioId) {
-      const { error } = await supabase.from("transaccion").insert({
-        id_portafolio: cliente.dbPortafolioId,
-        id_instrumento: instrumento.dbId,
-        tipo_operacion: op,
-        cantidad: parseInt(cantidad),
-        monto_total: total,
-        precio_sucio: parseFloat(precio),
+      const saveRes = await fetch("/api/operaciones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_portafolio: cliente.dbPortafolioId,
+          id_instrumento: instrumento.dbId,
+          tipo_operacion: op,
+          cantidad: parseInt(cantidad),
+          monto_total: total,
+          precio_sucio: parseFloat(precio),
+        }),
       })
-
-      if (error) {
-        setConfirmError(error.message)
+      if (!saveRes.ok) {
+        const err = await saveRes.json()
+        setConfirmError(err.error ?? "Error al guardar")
         setSaving(false)
         return
       }
-
-      // Refrescar log
       await cargarTransacciones()
     }
 
@@ -393,8 +365,7 @@ function OperacionesContent() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4f8 0%,#e8eef5 100%)" }}>
       <PageHeader
         title="Compra / Venta de instrumentos"
-        tag="Registro de operaciones"
-        description="Ejecuta operaciones con trazabilidad completa. El log es inmutable una vez confirmado."
+        description="Ejecuta operaciones con trazabilidad completa."
         crumbs={[
           { label: "Inicio", href: "/dashboard" },
           { label: "Operaciones" },
@@ -495,7 +466,7 @@ function OperacionesContent() {
                   >
                     {clientes.map(c => (
                       <option key={c.id} value={c.id}>
-                        {c.id.startsWith("db:") ? "" : "[mock] "}{c.nombre}
+                        {c.nombre}
                       </option>
                     ))}
                   </SelectField>
@@ -521,7 +492,7 @@ function OperacionesContent() {
                     <option value="" disabled>— Selecciona un instrumento —</option>
                     {instrVenta.map(i => (
                       <option key={i.id} value={i.id}>
-                        {i.id.startsWith("db:") ? "" : "[mock] "}{i.label}
+                        {i.label}
                       </option>
                     ))}
                   </SelectField>

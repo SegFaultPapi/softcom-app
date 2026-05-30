@@ -31,7 +31,6 @@ function AnualidadesContent() {
           { label: "Inicio", href: "/dashboard" },
           { label: "Anualidades" },
         ]}
-        tag="Módulo financiero"
       />
 
       <Tabs defaultValue="ordinaria">

@@ -34,7 +34,6 @@ function AlertasContent() {
           { label: "Inicio", href: "/dashboard" },
           { label: "Alertas de Riesgo" },
         ]}
-        tag="Gestión de riesgos"
       />
 
       {/* Tipos de alerta */}

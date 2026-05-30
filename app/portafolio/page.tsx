@@ -284,7 +284,6 @@ function PortafolioContent() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4f8 0%,#e8eef5 100%)" }}>
       <PageHeader
         title="Portafolio"
-        tag="Posiciones activas"
         description="Resumen de capital, posiciones actuales y análisis de distribución."
         crumbs={[
           { label: "Inicio", href: "/dashboard" },

@@ -543,7 +543,6 @@ function ValuacionContent() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4f8 0%,#e8eef5 100%)" }}>
       <PageHeader
         title="Valuación de instrumentos"
-        tag="Motor de valuación"
         crumbs={[
           { label: "Inicio", href: "/dashboard" },
           { label: "Valuación" },
