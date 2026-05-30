@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { usePrivy } from "@privy-io/react-auth"
-import { supabase } from "@/lib/supabase"
 
 export type Role = "admin" | "gerente_cartera" | "analyst"
 
@@ -50,19 +49,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setLoadingRole(true)
 
-    supabase
-      .from("profiles")
-      .select("role")
-      .eq("email", email)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (!error && data?.role) {
+    // Sincroniza el perfil (crea uno nuevo si no existe) y obtiene el rol real
+    fetch("/api/auth/sync-profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, nombre }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.role) {
           setRole(data.role as Role)
         } else {
           setRole(fallbackRole(email))
         }
-        setLoadingRole(false)
       })
+      .catch(() => setRole(fallbackRole(email)))
+      .finally(() => setLoadingRole(false))
   }, [email])
 
   const user: User | null = privyUser

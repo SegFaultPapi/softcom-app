@@ -68,6 +68,7 @@ export default function AdminUsuariosPage() {
 function AdminUsuariosContent() {
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [openForm, setOpenForm] = useState(false)
   const [editing, setEditing] = useState<UsuarioRow | null>(null)
   const [toDelete, setToDelete] = useState<UsuarioRow | null>(null)
@@ -75,10 +76,22 @@ function AdminUsuariosContent() {
 
   async function fetchUsuarios() {
     setLoading(true)
-    const res = await fetch("/api/admin/usuarios")
-    const data = await res.json()
-    setUsuarios(data)
-    setLoading(false)
+    setFetchError(null)
+    try {
+      const res = await fetch("/api/admin/usuarios", { cache: "no-store" })
+      const data = await res.json()
+      if (!res.ok) {
+        setFetchError(data.error ?? "Error al obtener usuarios")
+        setUsuarios([])
+      } else {
+        setUsuarios(Array.isArray(data) ? data : [])
+      }
+    } catch {
+      setFetchError("No se pudo conectar con el servidor")
+      setUsuarios([])
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { fetchUsuarios() }, [])
@@ -140,6 +153,12 @@ function AdminUsuariosContent() {
                   <TableRow>
                     <TableCell colSpan={4} className="py-10 text-center">
                       <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ) : fetchError ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-10 text-center text-sm text-destructive">
+                      {fetchError}
                     </TableCell>
                   </TableRow>
                 ) : usuarios.length === 0 ? (

@@ -902,7 +902,7 @@ export default function LandingPage() {
         setSlide(s => (s + 1) % SLIDES.length)
         setTextVisible(true)
       }, 420)
-    }, 11000)
+    }, 8000)
     return () => clearInterval(t)
   }, [])
 
