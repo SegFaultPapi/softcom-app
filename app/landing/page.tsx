@@ -885,6 +885,7 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  const [navHovered, setNavHovered] = useState(false)
 
   const goToSlide = (next: number) => {
     if (next === slide) return
@@ -920,15 +921,16 @@ export default function LandingPage() {
       {/* ── NAVBAR + MEGA MENU ── */}
       <div
         style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}
-        onMouseLeave={() => setOpenMenu(null)}
+        onMouseEnter={() => setNavHovered(true)}
+        onMouseLeave={() => { setNavHovered(false); setOpenMenu(null) }}
       >
         <header style={{
           position: "relative",
-          background: scrolled ? "rgba(11,22,41,0.98)" : "rgba(11,22,41,0.88)",
-          backdropFilter: "blur(14px)",
+          background: scrolled || navHovered ? "rgba(11,22,41,0.95)" : "rgba(11,22,41,0.0)",
+          backdropFilter: scrolled || navHovered ? "blur(14px)" : "none",
           borderBottom: scrolled ? "1px solid rgba(0,194,224,0.18)" : "none",
           boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.25)" : "none",
-          transition: "all 0.3s ease",
+          transition: "background 0.4s ease, backdrop-filter 0.4s ease, border-bottom 0.3s ease, box-shadow 0.3s ease",
         }}>
           <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", gap: 40 }}>
 
