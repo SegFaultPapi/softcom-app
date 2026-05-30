@@ -134,7 +134,7 @@ export default function LoginPage() {
             alt="SOFTCOM Solutions"
             width={180}
             height={54}
-            style={{ objectFit: "contain", height: 48, width: "auto" }}
+            style={{ objectFit: "contain", height: 48, width: "auto", filter: "invert(1) hue-rotate(180deg)" }}
           />
         </div>
 
