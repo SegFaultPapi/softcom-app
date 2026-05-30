@@ -1,46 +1,75 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import {
   ShoppingCart, Banknote, CheckCircle, AlertTriangle,
-  ChevronDown, ArrowRight, RotateCcw, Clock,
+  ChevronDown, RotateCcw, Clock, Database, Wifi, WifiOff,
 } from "lucide-react"
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
+import { supabase } from "@/lib/supabase"
 
 type Operacion = "compra" | "venta"
 
-// ── Mock instruments available ─────────────────────────────
-const INSTRUMENTOS = [
-  { id: "cetes-28",  label: "CETES 28d",        tipo: "CETES",  precioRef: 9.9123, vto: "2026-06-24" },
-  { id: "cetes-91",  label: "CETES 91d",         tipo: "CETES",  precioRef: 9.8534, vto: "2026-08-26" },
-  { id: "bonom-7",   label: "Bono M 7% 2031",    tipo: "BONO_M", precioRef: 97.20,  vto: "2031-06-05" },
-  { id: "bonom-8",   label: "Bono M 8.5% 2029",  tipo: "BONO_M", precioRef: 99.80,  vto: "2029-12-05" },
+// ── Mock fallback (se mantienen, se usan si DB está vacío) ──────────────────
+const INSTRUMENTOS_MOCK = [
+  { id: "mock:cetes-28",  label: "CETES 28d",        tipo: "CETES",  precioRef: 9.9123,  vto: "2026-06-24", dbId: null as number | null, dbPortafolioId: null as number | null },
+  { id: "mock:cetes-91",  label: "CETES 91d",         tipo: "CETES",  precioRef: 9.8534,  vto: "2026-08-26", dbId: null as number | null, dbPortafolioId: null as number | null },
+  { id: "mock:bonom-7",   label: "Bono M 7% 2031",    tipo: "BONO_M", precioRef: 97.20,   vto: "2031-06-05", dbId: null as number | null, dbPortafolioId: null as number | null },
+  { id: "mock:bonom-8",   label: "Bono M 8.5% 2029",  tipo: "BONO_M", precioRef: 99.80,   vto: "2029-12-05", dbId: null as number | null, dbPortafolioId: null as number | null },
 ]
 
-const CLIENTES = [
-  { id: "1", nombre: "Inversora del Norte SA",  saldo: 3_028_847.32 },
-  { id: "2", nombre: "Fondo Bajío Capital",     saldo: 8_540_211.00 },
-  { id: "3", nombre: "Corporativo Noreste SA",  saldo: 1_201_450.75 },
+const CLIENTES_MOCK = [
+  { id: "mock:1", nombre: "Inversora del Norte SA",  saldo: 3_028_847.32, dbPortafolioId: null as number | null },
+  { id: "mock:2", nombre: "Fondo Bajío Capital",     saldo: 8_540_211.00, dbPortafolioId: null as number | null },
+  { id: "mock:3", nombre: "Corporativo Noreste SA",  saldo: 1_201_450.75, dbPortafolioId: null as number | null },
 ]
 
-// ── Mock portfolio (venta only) ────────────────────────────
-const POSICIONES_VENTA: Record<string, { instrId: string; cantidad: number }[]> = {
-  "1": [
-    { instrId: "cetes-28", cantidad: 1_000_000 },
-    { instrId: "bonom-7",  cantidad: 20_000 },
-    { instrId: "bonom-8",  cantidad: 5_000 },
+const POSICIONES_VENTA_MOCK: Record<string, { instrId: string; cantidad: number }[]> = {
+  "mock:1": [
+    { instrId: "mock:cetes-28", cantidad: 1_000_000 },
+    { instrId: "mock:bonom-7",  cantidad: 20_000 },
+    { instrId: "mock:bonom-8",  cantidad: 5_000 },
   ],
-  "2": [
-    { instrId: "cetes-91", cantidad: 500_000 },
-    { instrId: "bonom-7",  cantidad: 10_000 },
+  "mock:2": [
+    { instrId: "mock:cetes-91", cantidad: 500_000 },
+    { instrId: "mock:bonom-7",  cantidad: 10_000 },
   ],
-  "3": [
-    { instrId: "cetes-28", cantidad: 200_000 },
+  "mock:3": [
+    { instrId: "mock:cetes-28", cantidad: 200_000 },
   ],
 }
 
-// ── Helpers ────────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────────────────────────
+type InstrumentoItem = {
+  id: string
+  label: string
+  tipo: string
+  precioRef: number
+  vto: string
+  dbId: number | null        // id_instrumento real en DB
+}
+
+type ClienteItem = {
+  id: string
+  nombre: string
+  saldo: number
+  dbPortafolioId: number | null  // id_portafolio real en DB
+}
+
+type TransaccionRow = {
+  id: number
+  tipo_operacion: string
+  cantidad: number
+  monto_total: number
+  precio_sucio: number | null
+  fecha: string
+  instrumento_label: string
+  instrumento_tipo: string
+  empresa_nombre: string
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
 const fmtMXN = (n: number) =>
   new Intl.NumberFormat("es-MX", {
     style: "currency", currency: "MXN",
@@ -49,7 +78,15 @@ const fmtMXN = (n: number) =>
 
 const fmtInt = (n: number) => new Intl.NumberFormat("es-MX").format(n)
 
-// ── Field component ────────────────────────────────────────
+const fmtFecha = (iso: string) => {
+  const d = new Date(iso)
+  return d.toLocaleString("es-MX", {
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  })
+}
+
+// ── Field components ─────────────────────────────────────────────────────────
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label style={{
@@ -124,24 +161,172 @@ function NumInput({
   )
 }
 
-// ── Operaciones content ────────────────────────────────────
+// ── Main content ─────────────────────────────────────────────────────────────
 function OperacionesContent() {
   const [op, setOp] = useState<Operacion>("compra")
-  const [clienteId, setClienteId] = useState("1")
+  const [clienteId, setClienteId] = useState("")
   const [instrId, setInstrId] = useState("")
   const [precio, setPrecio] = useState("")
   const [cantidad, setCantidad] = useState("")
   const [confirmed, setConfirmed] = useState(false)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [saving, setSaving] = useState(false)
 
-  const cliente = CLIENTES.find(c => c.id === clienteId)
-  const instrumento = INSTRUMENTOS.find(i => i.id === instrId)
-  const posicion = POSICIONES_VENTA[clienteId]?.find(p => p.instrId === instrId)
+  // DB state
+  const [instrumentos, setInstrumentos] = useState<InstrumentoItem[]>(INSTRUMENTOS_MOCK)
+  const [clientes, setClientes] = useState<ClienteItem[]>(CLIENTES_MOCK)
+  const [transacciones, setTransacciones] = useState<TransaccionRow[]>([])
+  const [loadingTx, setLoadingTx] = useState(true)
+  const [dbConectado, setDbConectado] = useState<boolean | null>(null)
 
-  // Auto-fill price when instrument is selected
+  // Posiciones para venta (mock o DB en el futuro)
+  const [posicionesVenta, setPosicionesVenta] = useState<Record<string, { instrId: string; cantidad: number }[]>>(POSICIONES_VENTA_MOCK)
+
+  // ── Cargar instrumentos y portafolios de Supabase ──────────────────────
+  useEffect(() => {
+    async function cargarCatalogos() {
+      try {
+        // Instrumentos
+        const { data: dbInstr, error: errInstr } = await supabase
+          .from("instrumento")
+          .select("id_instrumento, tipo, serie, tasa, fecha_vencimiento, valor_nominal")
+          .order("id_instrumento")
+
+        // Portafolios + empresas
+        const { data: dbPortafolios, error: errPort } = await supabase
+          .from("portafolio")
+          .select("id_portafolio, saldo_efectivo, empresa(id_empresa, nombre)")
+          .order("id_portafolio")
+
+        const hayInstr = !errInstr && dbInstr && dbInstr.length > 0
+        const hayPort = !errPort && dbPortafolios && dbPortafolios.length > 0
+
+        setDbConectado(true)
+
+        if (hayInstr) {
+          const mapped: InstrumentoItem[] = (dbInstr as Array<{
+            id_instrumento: number
+            tipo: string
+            serie: string
+            tasa: number | null
+            fecha_vencimiento: string
+            valor_nominal: number
+          }>).map(i => ({
+            id: `db:${i.id_instrumento}`,
+            label: buildInstrLabel(i),
+            tipo: i.tipo.toUpperCase(),
+            precioRef: i.valor_nominal,
+            vto: i.fecha_vencimiento,
+            dbId: i.id_instrumento,
+          }))
+          // Mocks al final como fallback visual
+          setInstrumentos([...mapped, ...INSTRUMENTOS_MOCK])
+        }
+
+        if (hayPort) {
+          const mapped: ClienteItem[] = (dbPortafolios as Array<{
+            id_portafolio: number
+            saldo_efectivo: number
+            empresa: { id_empresa: number; nombre: string } | null
+          }>).map(p => ({
+            id: `db:${p.id_portafolio}`,
+            nombre: p.empresa?.nombre ?? `Portafolio #${p.id_portafolio}`,
+            saldo: p.saldo_efectivo,
+            dbPortafolioId: p.id_portafolio,
+          }))
+          setClientes([...mapped, ...CLIENTES_MOCK])
+
+          // Inicializar selección con primer portafolio real
+          setClienteId(`db:${(dbPortafolios as Array<{ id_portafolio: number }>)[0].id_portafolio}`)
+        } else {
+          setClienteId(CLIENTES_MOCK[0].id)
+        }
+      } catch {
+        setDbConectado(false)
+        setClienteId(CLIENTES_MOCK[0].id)
+      }
+    }
+
+    cargarCatalogos()
+  }, [])
+
+  // ── Cargar transacciones recientes ─────────────────────────────────────
+  const cargarTransacciones = useCallback(async () => {
+    setLoadingTx(true)
+    try {
+      const { data, error } = await supabase
+        .from("transaccion")
+        .select(`
+          id_transaccion,
+          tipo_operacion,
+          cantidad,
+          monto_total,
+          precio_sucio,
+          fecha,
+          instrumento:id_instrumento ( tipo, serie, tasa ),
+          portafolio:id_portafolio ( empresa:id_empresa ( nombre ) )
+        `)
+        .order("fecha", { ascending: false })
+        .limit(20)
+
+      if (error) throw error
+
+      const rows: TransaccionRow[] = ((data ?? []) as Array<{
+        id_transaccion: number
+        tipo_operacion: string
+        cantidad: number
+        monto_total: number
+        precio_sucio: number | null
+        fecha: string
+        instrumento: { tipo: string; serie: string; tasa: number | null } | null
+        portafolio: { empresa: { nombre: string } | null } | null
+      }>).map(r => ({
+        id: r.id_transaccion,
+        tipo_operacion: r.tipo_operacion,
+        cantidad: r.cantidad,
+        monto_total: r.monto_total,
+        precio_sucio: r.precio_sucio,
+        fecha: r.fecha,
+        instrumento_label: r.instrumento
+          ? buildInstrLabelSimple(r.instrumento)
+          : "—",
+        instrumento_tipo: r.instrumento?.tipo?.toUpperCase() ?? "—",
+        empresa_nombre: r.portafolio?.empresa?.nombre ?? "—",
+      }))
+
+      setTransacciones(rows)
+    } catch {
+      // Sin datos o sin acceso → tabla vacía
+      setTransacciones([])
+    } finally {
+      setLoadingTx(false)
+    }
+  }, [])
+
+  useEffect(() => { cargarTransacciones() }, [cargarTransacciones])
+
+  // ── Helpers de labels ──────────────────────────────────────────────────
+  function buildInstrLabel(i: { tipo: string; serie: string; tasa: number | null; fecha_vencimiento: string }) {
+    const tipo = i.tipo.toUpperCase()
+    const tasa = i.tasa ? ` ${(i.tasa * 100).toFixed(2)}%` : ""
+    const year = i.fecha_vencimiento?.slice(0, 4)
+    return `${tipo}${tasa} ${i.serie} ${year}`
+  }
+
+  function buildInstrLabelSimple(i: { tipo: string; serie: string; tasa: number | null }) {
+    const tasa = i.tasa ? ` ${(i.tasa * 100).toFixed(2)}%` : ""
+    return `${i.tipo.toUpperCase()}${tasa} ${i.serie}`
+  }
+
+  // ── Selección actual ───────────────────────────────────────────────────
+  const cliente = clientes.find(c => c.id === clienteId)
+  const instrumento = instrumentos.find(i => i.id === instrId)
+  const posicion = posicionesVenta[clienteId]?.find(p => p.instrId === instrId)
+
   const handleInstrChange = (id: string) => {
     setInstrId(id)
-    const instr = INSTRUMENTOS.find(i => i.id === id)
+    const instr = instrumentos.find(i => i.id === id)
     if (instr) setPrecio(instr.precioRef.toFixed(4))
   }
 
@@ -153,25 +338,54 @@ function OperacionesContent() {
   }, [precio, cantidad])
 
   const saldoPost = cliente ? cliente.saldo - (op === "compra" ? total : -total) : 0
-  const isInsuficiente = op === "compra" && cliente && total > cliente.saldo
+  const isInsuficiente = op === "compra" && cliente != null && total > cliente.saldo
   const cantidadDisp = posicion?.cantidad ?? 0
-  const excedeCantidad = op === "venta" && parseFloat(cantidad) > cantidadDisp
+  const excedeCantidad = op === "venta" && parseFloat(cantidad) > cantidadDisp && posicion != null
 
   const canSubmit = instrId && precio && cantidad &&
     parseFloat(cantidad) >= 1 && parseFloat(precio) > 0 && !excedeCantidad
 
-  const handleConfirm = () => {
+  const usandoMock = !instrumento?.dbId || !cliente?.dbPortafolioId
+
+  // ── Guardar en Supabase ────────────────────────────────────────────────
+  const handleConfirm = async () => {
     setShowConfirm(false)
+    setSaving(true)
+    setConfirmError(null)
+
+    if (!usandoMock && instrumento?.dbId && cliente?.dbPortafolioId) {
+      const { error } = await supabase.from("transaccion").insert({
+        id_portafolio: cliente.dbPortafolioId,
+        id_instrumento: instrumento.dbId,
+        tipo_operacion: op,
+        cantidad: parseInt(cantidad),
+        monto_total: total,
+        precio_sucio: parseFloat(precio),
+      })
+
+      if (error) {
+        setConfirmError(error.message)
+        setSaving(false)
+        return
+      }
+
+      // Refrescar log
+      await cargarTransacciones()
+    }
+
+    setSaving(false)
     setConfirmed(true)
-    // Reset form
     setInstrId(""); setPrecio(""); setCantidad("")
-    setTimeout(() => setConfirmed(false), 4000)
+    setTimeout(() => setConfirmed(false), 5000)
   }
 
-  // Available instruments for venta (only those in portfolio)
+  // Instrumentos disponibles para venta
   const instrVenta = op === "venta"
-    ? INSTRUMENTOS.filter(i => POSICIONES_VENTA[clienteId]?.some(p => p.instrId === i.id))
-    : INSTRUMENTOS
+    ? instrumentos.filter(i =>
+        posicionesVenta[clienteId]?.some(p => p.instrId === i.id) ||
+        i.id.startsWith("db:")  // instrumentos DB siempre disponibles
+      )
+    : instrumentos
 
   const opColor = op === "compra" ? "#22c55e" : "#ef4444"
   const opLabel = op === "compra" ? "Compra" : "Venta"
@@ -190,6 +404,26 @@ function OperacionesContent() {
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px 48px" }}>
 
+        {/* DB status badge */}
+        {dbConectado !== null && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "5px 12px", borderRadius: 20, marginBottom: 16,
+            background: dbConectado ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
+            border: `1px solid ${dbConectado ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`,
+            fontSize: 11, fontWeight: 600,
+            color: dbConectado ? "#16a34a" : "#dc2626",
+          }}>
+            {dbConectado ? <Wifi size={11} /> : <WifiOff size={11} />}
+            {dbConectado ? "Conectado a Supabase" : "Sin conexión — modo mock"}
+            {usandoMock && dbConectado && (
+              <span style={{ marginLeft: 4, color: "#94a3b8", fontWeight: 400 }}>
+                · instrumento/portafolio mock (no se guardará en DB)
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Success toast */}
         {confirmed && (
           <div className="anim-scale-in" style={{
@@ -203,9 +437,33 @@ function OperacionesContent() {
                 Operación registrada exitosamente
               </p>
               <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>
-                El log de trazabilidad ha sido actualizado. El portafolio refleja los cambios.
+                {usandoMock
+                  ? "Modo mock — la operación no fue guardada en base de datos."
+                  : "Guardada en Supabase. El log fue actualizado."
+                }
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Error toast */}
+        {confirmError && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12,
+            background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)",
+            borderRadius: 12, padding: "14px 18px", marginBottom: 20,
+          }}>
+            <AlertTriangle size={18} color="#ef4444" />
+            <div>
+              <p style={{ margin: 0, fontWeight: 700, color: "#0b1629", fontSize: 13 }}>
+                Error al guardar operación
+              </p>
+              <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>{confirmError}</p>
+            </div>
+            <button
+              onClick={() => setConfirmError(null)}
+              style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 18 }}
+            >×</button>
           </div>
         )}
 
@@ -217,9 +475,7 @@ function OperacionesContent() {
             overflow: "hidden",
           }}>
             {/* Tab switcher */}
-            <div style={{
-              display: "flex", borderBottom: "1px solid #f1f5f9", background: "#f8fafc",
-            }}>
+            <div style={{ display: "flex", borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
               {(["compra", "venta"] as const).map(t => (
                 <button
                   key={t}
@@ -249,10 +505,15 @@ function OperacionesContent() {
 
                 {/* Cliente */}
                 <div>
-                  <Label>Empresa cliente</Label>
-                  <SelectField value={clienteId} onChange={v => { setClienteId(v); setInstrId(""); setPrecio(""); setCantidad("") }}>
-                    {CLIENTES.map(c => (
-                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                  <Label>Empresa / Portafolio</Label>
+                  <SelectField
+                    value={clienteId}
+                    onChange={v => { setClienteId(v); setInstrId(""); setPrecio(""); setCantidad("") }}
+                  >
+                    {clientes.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.id.startsWith("db:") ? "" : "[mock] "}{c.nombre}
+                      </option>
                     ))}
                   </SelectField>
                   {cliente && (
@@ -261,6 +522,11 @@ function OperacionesContent() {
                       <span className="sc-number" style={{ fontWeight: 600, color: "#0b1629" }}>
                         {fmtMXN(cliente.saldo)}
                       </span>
+                      {cliente.dbPortafolioId && (
+                        <span style={{ marginLeft: 6, color: "#00c2e0" }}>
+                          <Database size={10} style={{ display: "inline", marginBottom: -1 }} /> id={cliente.dbPortafolioId}
+                        </span>
+                      )}
                     </p>
                   )}
                 </div>
@@ -271,7 +537,9 @@ function OperacionesContent() {
                   <SelectField value={instrId} onChange={handleInstrChange}>
                     <option value="" disabled>— Selecciona un instrumento —</option>
                     {instrVenta.map(i => (
-                      <option key={i.id} value={i.id}>{i.label}</option>
+                      <option key={i.id} value={i.id}>
+                        {i.id.startsWith("db:") ? "" : "[mock] "}{i.label}
+                      </option>
                     ))}
                   </SelectField>
                   {instrumento && (
@@ -282,6 +550,12 @@ function OperacionesContent() {
                       <span style={{ fontSize: 12, color: "#94a3b8" }}>
                         Vto: <strong style={{ color: "#0b1629" }}>{instrumento.vto}</strong>
                       </span>
+                      {instrumento.dbId && (
+                        <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                          <Database size={10} style={{ display: "inline", marginBottom: -1 }} />
+                          <strong style={{ color: "#00c2e0" }}> id={instrumento.dbId}</strong>
+                        </span>
+                      )}
                       {op === "venta" && posicion && (
                         <span style={{ fontSize: 12, color: "#94a3b8" }}>
                           En portafolio:{" "}
@@ -339,35 +613,37 @@ function OperacionesContent() {
 
                 {/* Submit */}
                 <button
-                  disabled={!canSubmit}
+                  disabled={!canSubmit || saving}
                   onClick={() => setShowConfirm(true)}
                   style={{
                     padding: "13px 0", borderRadius: 10, border: "none",
-                    fontSize: 14, fontWeight: 700, cursor: canSubmit ? "pointer" : "not-allowed",
-                    background: canSubmit
+                    fontSize: 14, fontWeight: 700, cursor: (canSubmit && !saving) ? "pointer" : "not-allowed",
+                    background: (canSubmit && !saving)
                       ? op === "compra"
                         ? "linear-gradient(135deg,#22c55e,#16a34a)"
                         : "linear-gradient(135deg,#ef4444,#dc2626)"
                       : "#e2e8f0",
-                    color: canSubmit ? "#fff" : "#94a3b8",
+                    color: (canSubmit && !saving) ? "#fff" : "#94a3b8",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     transition: "all 0.15s",
-                    boxShadow: canSubmit
+                    boxShadow: (canSubmit && !saving)
                       ? `0 4px 16px ${op === "compra" ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`
                       : "none",
                   }}
                 >
-                  {op === "compra" ? <ShoppingCart size={16} /> : <Banknote size={16} />}
-                  {canSubmit ? `Confirmar ${opLabel}` : `Completa los campos para ${opLabel}`}
+                  {saving ? (
+                    <RotateCcw size={15} style={{ animation: "spin 1s linear infinite" }} />
+                  ) : (
+                    op === "compra" ? <ShoppingCart size={16} /> : <Banknote size={16} />
+                  )}
+                  {saving ? "Guardando…" : canSubmit ? `Confirmar ${opLabel}` : `Completa los campos para ${opLabel}`}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* ── Trade Ticket (right panel) ── */}
+          {/* ── Trade Ticket ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-            {/* Live summary */}
             <div className="sc-result-panel" style={{ padding: "22px 20px" }}>
               <div style={{ position: "relative", zIndex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
@@ -379,7 +655,6 @@ function OperacionesContent() {
                   </span>
                 </div>
 
-                {/* Op type badge */}
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 6,
                   background: op === "compra" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
@@ -396,7 +671,6 @@ function OperacionesContent() {
                   </span>
                 </div>
 
-                {/* Rows */}
                 {[
                   { label: "Cliente", value: cliente?.nombre ?? "—", mono: false },
                   { label: "Instrumento", value: instrumento?.label ?? "—", mono: false },
@@ -420,7 +694,6 @@ function OperacionesContent() {
                   </div>
                 ))}
 
-                {/* Total */}
                 <div style={{
                   marginTop: 14, padding: "14px 16px",
                   background: "rgba(0,194,224,0.08)", border: "1px solid rgba(0,194,224,0.2)",
@@ -434,7 +707,6 @@ function OperacionesContent() {
                   </p>
                 </div>
 
-                {/* Saldo post */}
                 {cliente && total > 0 && (
                   <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -451,7 +723,6 @@ function OperacionesContent() {
               </div>
             </div>
 
-            {/* Log note */}
             <div style={{
               background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0",
               padding: "14px 16px",
@@ -466,24 +737,119 @@ function OperacionesContent() {
           </div>
         </div>
 
-        {/* ── Recent ops placeholder ── */}
+        {/* ── Últimas operaciones ─────────────────────────────────────────────── */}
         <div style={{
           marginTop: 24, background: "#fff", borderRadius: 14,
           border: "1px solid #e2e8f0", overflow: "hidden",
         }}>
-          <div style={{ padding: "18px 22px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{
+            padding: "18px 22px", borderBottom: "1px solid #f1f5f9",
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+          }}>
             <div>
               <p className="sc-display-font" style={{ fontSize: 14, fontWeight: 700, color: "#0b1629", margin: 0 }}>
                 Últimas operaciones
               </p>
-              <p style={{ fontSize: 12, color: "#94a3b8", margin: "2px 0 0" }}>Log trazable e inmutable</p>
+              <p style={{ fontSize: 12, color: "#94a3b8", margin: "2px 0 0" }}>
+                Log trazable e inmutable · {transacciones.length} registro{transacciones.length !== 1 ? "s" : ""}
+              </p>
             </div>
+            <button
+              onClick={cargarTransacciones}
+              disabled={loadingTx}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "7px 14px", borderRadius: 8,
+                border: "1px solid #e2e8f0", background: "#fff",
+                fontSize: 12, fontWeight: 600, color: "#64748b",
+                cursor: loadingTx ? "not-allowed" : "pointer",
+              }}
+            >
+              <RotateCcw size={12} style={{ animation: loadingTx ? "spin 1s linear infinite" : "none" }} />
+              Actualizar
+            </button>
           </div>
-          <div style={{ padding: "32px 22px", textAlign: "center" }}>
-            <p style={{ color: "#94a3b8", fontSize: 14 }}>
-              Las operaciones confirmadas aparecerán aquí con su timestamp y ID de trazabilidad.
-            </p>
-          </div>
+
+          {loadingTx ? (
+            <div style={{ padding: "32px 22px", textAlign: "center" }}>
+              <p style={{ color: "#94a3b8", fontSize: 14 }}>Cargando operaciones…</p>
+            </div>
+          ) : transacciones.length === 0 ? (
+            <div style={{ padding: "32px 22px", textAlign: "center" }}>
+              <p style={{ color: "#94a3b8", fontSize: 14 }}>
+                Las operaciones confirmadas aparecerán aquí con su timestamp y ID de trazabilidad.
+              </p>
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    {["ID", "Tipo", "Empresa", "Instrumento", "Cantidad", "Importe", "Precio", "Fecha"].map(h => (
+                      <th key={h} style={{
+                        padding: "10px 16px", textAlign: "left",
+                        fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
+                        textTransform: "uppercase", color: "#94a3b8",
+                        borderBottom: "1px solid #f1f5f9",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {transacciones.map((tx, idx) => (
+                    <tr
+                      key={tx.id}
+                      style={{ background: idx % 2 === 0 ? "#fff" : "#fafafa" }}
+                    >
+                      <td style={{ padding: "10px 16px", color: "#94a3b8", fontFamily: "monospace", fontSize: 11 }}>
+                        #{tx.id}
+                      </td>
+                      <td style={{ padding: "10px 16px" }}>
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          padding: "3px 9px", borderRadius: 12, fontSize: 11, fontWeight: 700,
+                          background: tx.tipo_operacion === "compra"
+                            ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+                          color: tx.tipo_operacion === "compra" ? "#16a34a" : "#dc2626",
+                        }}>
+                          {tx.tipo_operacion === "compra"
+                            ? <ShoppingCart size={9} /> : <Banknote size={9} />}
+                          {tx.tipo_operacion}
+                        </span>
+                      </td>
+                      <td style={{ padding: "10px 16px", color: "#0b1629", fontWeight: 500 }}>
+                        {tx.empresa_nombre}
+                      </td>
+                      <td style={{ padding: "10px 16px" }}>
+                        <span style={{ color: "#0b1629", fontWeight: 500 }}>{tx.instrumento_label}</span>
+                        <span style={{
+                          marginLeft: 6, fontSize: 10, fontWeight: 700, color: "#00c2e0",
+                          background: "rgba(0,194,224,0.08)", padding: "1px 6px", borderRadius: 4,
+                        }}>
+                          {tx.instrumento_tipo}
+                        </span>
+                      </td>
+                      <td className="sc-number" style={{ padding: "10px 16px", color: "#0b1629" }}>
+                        {fmtInt(tx.cantidad)}
+                      </td>
+                      <td className="sc-number" style={{ padding: "10px 16px", color: "#0b1629", fontWeight: 600 }}>
+                        {fmtMXN(tx.monto_total)}
+                      </td>
+                      <td className="sc-number" style={{ padding: "10px 16px", color: "#64748b" }}>
+                        {tx.precio_sucio != null ? `$${tx.precio_sucio.toFixed(4)}` : "—"}
+                      </td>
+                      <td style={{ padding: "10px 16px", color: "#64748b", whiteSpace: "nowrap", fontSize: 12 }}>
+                        {fmtFecha(tx.fecha)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -514,8 +880,24 @@ function OperacionesContent() {
               Confirmar {opLabel}
             </h2>
             <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-              Esta acción registrará la operación de forma inmutable en el log del sistema.
+              {usandoMock
+                ? "Esta operación usa datos mock y no será guardada en la base de datos."
+                : "Esta acción registrará la operación de forma inmutable en Supabase."
+              }
             </p>
+
+            {usandoMock && (
+              <div style={{
+                display: "flex", gap: 8, padding: "10px 14px", marginBottom: 16,
+                background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.25)",
+                borderRadius: 8,
+              }}>
+                <AlertTriangle size={14} color="#f59e0b" style={{ flexShrink: 0, marginTop: 2 }} />
+                <p style={{ margin: 0, fontSize: 12, color: "#92400e" }}>
+                  Instrumento o portafolio sin ID real en DB. Siembra datos en Supabase para persistir.
+                </p>
+              </div>
+            )}
 
             <div style={{ background: "#f8fafc", borderRadius: 12, padding: "16px", marginBottom: 20 }}>
               {[
@@ -578,6 +960,10 @@ function OperacionesContent() {
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   )
 }

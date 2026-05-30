@@ -532,6 +532,89 @@ function DashboardContent() {
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 48px" }}>
 
+        {/* ── Financial Hero Strip (gerente_cartera) ── */}
+        {user.role === "gerente_cartera" && (
+          <div className="anim-fade-up" style={{
+            position: "relative", overflow: "hidden",
+            background: "linear-gradient(135deg, #0b1629 0%, #0d2347 60%, #0a1f3d 100%)",
+            borderRadius: 20, padding: "32px 36px", marginBottom: 24,
+          }}>
+            <div style={{
+              position: "absolute", inset: 0, opacity: 0.04,
+              backgroundImage: "radial-gradient(rgba(0,194,224,1) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+            }} />
+            <div style={{ position: "absolute", top: "-30%", right: "5%", width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle,rgba(0,194,224,0.09) 0%,transparent 70%)", pointerEvents: "none" }} />
+
+            <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr 1px 1fr 1px 1fr", gap: 0, alignItems: "center" }}>
+
+              {/* Capital Total */}
+              <div style={{ padding: "0 32px 0 0" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#00c2e0", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  Capital Total
+                </p>
+                <p className="sc-number" style={{ fontSize: 42, fontWeight: 900, color: "#fff", margin: "0 0 8px", lineHeight: 1, letterSpacing: -1 }}>
+                  $20.31M
+                </p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+                  Inversora del Norte SA
+                </p>
+                {/* Progress bar */}
+                <div style={{ marginTop: 14, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.1)" }}>
+                  <div style={{ width: "85.1%", height: "100%", borderRadius: 2, background: "linear-gradient(90deg, #00c2e0, #3b82f6)" }} />
+                </div>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "5px 0 0" }}>85.1% invertido</p>
+              </div>
+
+              <div style={{ width: 1, height: 80, background: "rgba(255,255,255,0.08)" }} />
+
+              {/* Capital Invertido */}
+              <div style={{ padding: "0 32px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#6366f1", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  Capital Invertido
+                </p>
+                <p className="sc-number" style={{ fontSize: 42, fontWeight: 900, color: "#fff", margin: "0 0 8px", lineHeight: 1, letterSpacing: -1 }}>
+                  $17.28M
+                </p>
+                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                  {[["CETES", "$14.84M", "#00c2e0"], ["Bonos M", "$1.94M", "#3b82f6"]].map(([l, v, c]) => (
+                    <div key={l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: c as string }} />
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{l}</span>
+                      <span className="sc-number" style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ width: 1, height: 80, background: "rgba(255,255,255,0.08)" }} />
+
+              {/* Total por Empresa */}
+              <div style={{ padding: "0 0 0 32px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#22c55e", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 10px" }}>
+                  Por Empresa
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[
+                    { nombre: "Inversora Norte", valor: "$20.31M", pct: 100 },
+                    { nombre: "Fondo Bajío",      valor: "$18.20M", pct: 90  },
+                    { nombre: "Corp. Noreste",    valor: "$15.80M", pct: 78  },
+                  ].map((e) => (
+                    <div key={e.nombre} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
+                        <div style={{ width: `${e.pct}%`, height: "100%", borderRadius: 2, background: "rgba(34,197,94,0.7)" }} />
+                      </div>
+                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", minWidth: 90, whiteSpace: "nowrap" }}>{e.nombre}</span>
+                      <span className="sc-number" style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 700, minWidth: 56, textAlign: "right" }}>{e.valor}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
         {/* ── KPI Stats ── */}
         {stats.length > 0 && (
           <div className="anim-fade-up delay-1" style={{

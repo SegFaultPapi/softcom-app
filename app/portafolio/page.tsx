@@ -125,7 +125,7 @@ function exportCSV() {
   URL.revokeObjectURL(url)
 }
 
-// ── KPI Card ───────────────────────────────────────────────
+// ── KPI Card (normal) ──────────────────────────────────────
 function KPICard({
   label, value, sub, icon: Icon, color, trend,
 }: {
@@ -157,6 +157,67 @@ function KPICard({
       </p>
       {!TrendIcon && sub && (
         <p style={{ fontSize: 12, color: "#94a3b8", margin: "4px 0 0" }}>{sub}</p>
+      )}
+    </div>
+  )
+}
+
+// ── KPI Card Hero (destacado, fondo navy) ──────────────────
+function KPICardHero({
+  label, value, sub, icon: Icon, color, bar,
+}: {
+  label: string; value: string; sub?: string
+  icon: React.ComponentType<{ size?: number; color?: string }>
+  color: string; bar?: number
+}) {
+  return (
+    <div style={{
+      position: "relative", overflow: "hidden",
+      background: "linear-gradient(135deg, #0b1629 0%, #0d2347 100%)",
+      borderRadius: 16, padding: "22px 24px",
+      border: `1px solid ${color}30`,
+      boxShadow: `0 8px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)`,
+      transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.transform = "translateY(-2px)"
+        el.style.boxShadow = `0 14px 32px rgba(0,0,0,0.2), 0 0 0 1px ${color}50`
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLDivElement
+        el.style.transform = "translateY(0)"
+        el.style.boxShadow = `0 8px 24px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)`
+      }}
+    >
+      {/* Glow */}
+      <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100, borderRadius: "50%", background: `radial-gradient(circle, ${color}18 0%, transparent 70%)`, pointerEvents: "none" }} />
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, position: "relative", zIndex: 1 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 9,
+          background: `${color}20`, border: `1px solid ${color}35`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Icon size={17} color={color} />
+        </div>
+        <span style={{ fontSize: 10, fontWeight: 700, color, letterSpacing: "0.1em", textTransform: "uppercase", opacity: 0.85 }}>
+          {label}
+        </span>
+      </div>
+
+      <p className="sc-number" style={{ fontSize: 34, fontWeight: 900, color: "#fff", margin: "0 0 4px", lineHeight: 1, letterSpacing: -0.5, position: "relative", zIndex: 1 }}>
+        {value}
+      </p>
+      {sub && <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0, position: "relative", zIndex: 1 }}>{sub}</p>}
+
+      {bar !== undefined && (
+        <div style={{ marginTop: 14, position: "relative", zIndex: 1 }}>
+          <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.08)" }}>
+            <div style={{ width: `${bar}%`, height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${color}, ${color}99)`, transition: "width 0.6s ease" }} />
+          </div>
+          <p style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", margin: "4px 0 0" }}>{bar.toFixed(1)}% del capital total</p>
+        </div>
       )}
     </div>
   )
@@ -302,29 +363,29 @@ function PortafolioContent() {
         <div className="anim-fade-up delay-1" style={{
           display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28,
         }}>
-          <KPICard
+          <KPICardHero
             label="Capital Total"
             value={fmtShort(capitalTotal)}
-            sub={`${pctInvertido.toFixed(1)}% invertido`}
+            sub={isGerente ? clienteNombre : "Tu portafolio"}
             icon={Activity}
             color="#00c2e0"
-            trend="neutral"
+            bar={pctInvertido}
           />
-          <KPICard
-            label="Capital Disponible"
-            value={fmtShort(capitalDisponible)}
-            sub={`${(100 - pctInvertido).toFixed(1)}% del total`}
-            icon={Wallet}
-            color="#3b82f6"
-            trend="neutral"
-          />
-          <KPICard
+          <KPICardHero
             label="Capital Invertido"
             value={fmtShort(valorTotal)}
-            sub={`${POSICIONES.length} posiciones`}
+            sub={`${POSICIONES.length} posiciones activas`}
             icon={Briefcase}
             color="#6366f1"
-            trend="neutral"
+            bar={pctInvertido}
+          />
+          <KPICardHero
+            label="Capital Disponible"
+            value={fmtShort(capitalDisponible)}
+            sub={`${(100 - pctInvertido).toFixed(1)}% libre para operar`}
+            icon={Wallet}
+            color="#22c55e"
+            bar={100 - pctInvertido}
           />
           <KPICard
             label="P&L Total"
