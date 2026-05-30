@@ -63,16 +63,24 @@ export default function LoginPage() {
 
       {/* ── LEFT PANEL (navy) ── */}
       <div className="hidden lg:flex anim-slide-l" style={{
-        flex: "0 0 48%", background: "linear-gradient(160deg, #0b1629 0%, #0d2347 55%, #0a1f3d 100%)",
+        flex: "0 0 48%",
+        backgroundImage: "url('/hero-sky.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         position: "relative", overflow: "hidden",
         flexDirection: "column", justifyContent: "center", padding: "60px 56px",
       }}>
+        {/* Overlay oscuro para legibilidad */}
         <div style={{
-          position: "absolute", inset: 0, opacity: 0.05,
+          position: "absolute", inset: 0,
+          background: "linear-gradient(160deg, rgba(11,22,41,0.72) 0%, rgba(13,35,71,0.60) 55%, rgba(6,20,40,0.50) 100%)",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0, opacity: 0.03,
           backgroundImage: "linear-gradient(rgba(0,194,224,1) 1px, transparent 1px), linear-gradient(90deg,rgba(0,194,224,1) 1px,transparent 1px)",
           backgroundSize: "50px 50px",
         }} />
-        <div style={{ position: "absolute", top: "30%", right: "-10%", width: 360, height: 360, borderRadius: "50%", background: "radial-gradient(circle,rgba(0,194,224,0.1) 0%,transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "30%", right: "-10%", width: 360, height: 360, borderRadius: "50%", background: "radial-gradient(circle,rgba(0,194,224,0.08) 0%,transparent 70%)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", zIndex: 1 }}>
           <div className="anim-fade-up" style={{ marginBottom: 56 }}>
@@ -86,19 +94,10 @@ export default function LoginPage() {
             />
           </div>
 
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "rgba(0,194,224,0.1)", border: "1px solid rgba(0,194,224,0.25)",
-            borderRadius: 20, padding: "5px 14px", marginBottom: 24,
-          }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#00c2e0" }} />
-            <span style={{ color: "#00c2e0", fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Plataforma Institucional</span>
-          </div>
-
-          <h1 className="anim-fade-up delay-2" style={{ color: "#fff", fontSize: 38, fontWeight: 800, lineHeight: 1.2, marginBottom: 16, letterSpacing: -0.5 }}>
+          <h1 className="anim-fade-up delay-2" style={{ color: "#fff", fontSize: 42, fontWeight: 900, lineHeight: 1.15, marginBottom: 18, letterSpacing: -0.5, textShadow: "0 2px 20px rgba(0,0,0,0.55)" }}>
             Gestión financiera<br />de alto nivel
           </h1>
-          <p className="anim-fade-up delay-3" style={{ color: "rgba(255,255,255,0.6)", fontSize: 16, lineHeight: 1.7, marginBottom: 48, maxWidth: 380 }}>
+          <p className="anim-fade-up delay-3" style={{ color: "rgba(255,255,255,0.92)", fontSize: 17, fontWeight: 500, lineHeight: 1.75, marginBottom: 48, maxWidth: 380, textShadow: "0 1px 12px rgba(0,0,0,0.45)" }}>
             Accede a herramientas profesionales para valuación de bonos, análisis de portafolios y registro de operaciones.
           </p>
 
@@ -109,12 +108,12 @@ export default function LoginPage() {
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <div style={{
                     width: 38, height: 38, borderRadius: 9,
-                    background: "rgba(0,194,224,0.12)", border: "1px solid rgba(0,194,224,0.2)",
+                    background: "rgba(0,194,224,0.15)", border: "1px solid rgba(0,194,224,0.3)",
                     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                   }}>
                     <Icon size={17} color="#00c2e0" />
                   </div>
-                  <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>{f.label}</span>
+                  <span style={{ color: "rgba(255,255,255,0.95)", fontSize: 15, fontWeight: 500, textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}>{f.label}</span>
                 </div>
               )
             })}

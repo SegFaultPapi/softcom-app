@@ -268,12 +268,12 @@ function CetesForm() {
   const handleReset = () => { setQty("") }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "stretch" }}>
 
       {/* ── Left: Inputs ── */}
       <div style={{
         background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0",
-        padding: "28px 24px",
+        padding: "28px 24px", display: "flex", flexDirection: "column",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
@@ -303,7 +303,7 @@ function CetesForm() {
       </div>
 
       {/* ── Right: Live Results ── */}
-      <div className="sc-result-panel" style={{ padding: "28px 24px", minHeight: 320 }}>
+      <div className="sc-result-panel" style={{ padding: "28px 24px" }}>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <div style={{
@@ -383,12 +383,12 @@ function BonoForm() {
   const aniosValido = !isNaN(aniosNum) && aniosNum > 1
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "stretch" }}>
 
       {/* ── Left: Inputs ── */}
       <div style={{
         background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0",
-        padding: "28px 24px",
+        padding: "28px 24px", display: "flex", flexDirection: "column",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
@@ -451,7 +451,7 @@ function BonoForm() {
       </div>
 
       {/* ── Right: Live Results ── */}
-      <div className="sc-result-panel" style={{ padding: "28px 24px", minHeight: 360 }}>
+      <div className="sc-result-panel" style={{ padding: "28px 24px" }}>
         <div style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <div style={{

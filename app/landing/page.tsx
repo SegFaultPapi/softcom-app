@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronDown, ArrowRight, Menu, X, ChevronRight } from "lucide-react"
+import { ChevronDown, ArrowRight, Menu, X, ChevronRight, ChevronLeft } from "lucide-react"
 
 // ─────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -678,10 +678,10 @@ function CtaFeaturePreviews() {
   ]
 
   return (
-    <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+    <div className="flex flex-wrap justify-center gap-4">
       {previews.map(p => (
         <div key={p.label} style={{
-          width: 220, background: "rgba(255,255,255,0.04)",
+          width: "min(220px, 100%)", background: "rgba(255,255,255,0.04)",
           border: `1px solid ${p.accent}30`,
           borderRadius: 14, overflow: "hidden",
         }}>
@@ -891,9 +891,11 @@ export default function LandingPage() {
   const carouselRef = useRef<HTMLDivElement>(null)
   const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const CARDS_VISIBLE = 3
   const GAP = 20
-  const maxCarouselIdx = SERVICES.length - CARDS_VISIBLE
+  const [isMobile, setIsMobile] = useState(false)
+  const cardsVisible = isMobile ? 1 : 3
+  const carouselGap = isMobile ? 0 : GAP
+  const maxCarouselIdx = Math.max(0, SERVICES.length - cardsVisible)
 
   const startAutoAdvance = useCallback(() => {
     if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current)
@@ -911,6 +913,9 @@ export default function LandingPage() {
     setCarouselIdx(i => (i >= maxCarouselIdx ? 0 : i + 1))
     startAutoAdvance()
   }, [maxCarouselIdx, startAutoAdvance])
+
+  // Reset carousel index when switching mobile/desktop to avoid out-of-bounds
+  useEffect(() => { setCarouselIdx(0) }, [isMobile])
 
   const goToSlide = (next: number) => {
     if (next === slide) return
@@ -942,7 +947,11 @@ export default function LandingPage() {
     const measure = () => {
       if (carouselRef.current) {
         const w = carouselRef.current.offsetWidth
-        setCardWidth((w - GAP * (CARDS_VISIBLE - 1)) / CARDS_VISIBLE)
+        const mobile = w < 640
+        const visible = mobile ? 1 : 3
+        const gap = mobile ? 0 : GAP
+        setCardWidth((w - gap * (visible - 1)) / visible)
+        setIsMobile(mobile)
       }
     }
     measure()
@@ -974,7 +983,7 @@ export default function LandingPage() {
           boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.25)" : "none",
           transition: "background 0.4s ease, backdrop-filter 0.4s ease, border-bottom 0.3s ease, box-shadow 0.3s ease",
         }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center", gap: 40 }}>
+          <div className="gap-4 md:gap-10" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", height: 68, display: "flex", alignItems: "center" }}>
 
             <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
               <Image src="/SOFTCOM_LOGO.png" alt="SOFTCOM Solutions" width={160} height={48}
@@ -1013,8 +1022,8 @@ export default function LandingPage() {
               </Link>
             </nav>
 
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
-              <Link href="#contacto" style={{
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
+              <Link href="#contacto" className="hidden md:inline" style={{
                 color: "rgba(255,255,255,0.65)", textDecoration: "none",
                 fontSize: 16, fontWeight: 500,
                 transition: "color 0.15s",
@@ -1026,10 +1035,10 @@ export default function LandingPage() {
               </Link>
               <Link href="/login" style={{
                 background: "linear-gradient(135deg, #00c2e0, #0099b8)",
-                color: "#fff", textDecoration: "none", fontSize: 16, fontWeight: 700,
-                padding: "10px 26px", borderRadius: 7,
+                color: "#fff", textDecoration: "none", fontWeight: 700,
+                fontSize: 14, padding: "8px 16px", borderRadius: 7,
                 boxShadow: "0 4px 14px rgba(0,194,224,0.3)",
-                transition: "opacity 0.15s",
+                transition: "opacity 0.15s", whiteSpace: "nowrap",
               }}
                 onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88" }}
                 onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1" }}
@@ -1045,8 +1054,53 @@ export default function LandingPage() {
           </div>
         </header>
 
-        {/* Mega menu dropdown */}
+        {/* Mega menu dropdown — desktop only */}
         {openMenu && <MegaMenuPanel active={openMenu} />}
+
+        {/* Mobile nav menu */}
+        {menuOpen && (
+          <div style={{
+            background: "rgba(6,14,26,0.98)", backdropFilter: "blur(16px)",
+            borderBottom: "1px solid rgba(0,194,224,0.15)",
+            padding: "16px 24px 24px",
+          }}
+            className="md:hidden"
+          >
+            <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {[
+                { label: "Plataforma",    href: "#" },
+                { label: "Casos de uso", href: "#" },
+                { label: "Precios",       href: "#precios" },
+                { label: "Contacto",      href: "#contacto" },
+              ].map(item => (
+                <a key={item.label} href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    color: "rgba(255,255,255,0.8)", textDecoration: "none",
+                    fontSize: 16, fontWeight: 500, padding: "12px 4px",
+                    borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                  }}
+                >
+                  {item.label}
+                  <ChevronRight size={14} color="rgba(255,255,255,0.3)" />
+                </a>
+              ))}
+            </nav>
+            <Link href="/login"
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                marginTop: 20, padding: "13px 0", borderRadius: 9,
+                background: "linear-gradient(135deg, #00c2e0, #0099b8)",
+                color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 15,
+                boxShadow: "0 4px 14px rgba(0,194,224,0.3)",
+              }}
+            >
+              Acceder al Sistema <ArrowRight size={15} />
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* ── HERO ── */}
@@ -1073,8 +1127,8 @@ export default function LandingPage() {
         <div style={{ position: "absolute", top: "5%", right: "6%", width: 520, height: 520, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,194,224,0.07) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: "8%", left: "0%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(26,58,107,0.25) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "72px 24px", position: "relative", zIndex: 1, width: "100%" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 56, alignItems: "center" }}>
+        <div className="px-4 py-14 md:px-6 lg:py-[72px]" style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1, width: "100%" }}>
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_1.15fr] lg:gap-14">
 
             {/* Text */}
             <div>
@@ -1133,8 +1187,8 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Animated mock dashboard */}
-            <div className="anim-slide-r delay-2">
+            {/* Animated mock dashboard — solo desktop */}
+            <div className="hidden lg:block anim-slide-r delay-2">
               <MockDashboard slide={slide} visible={textVisible} />
             </div>
           </div>
@@ -1148,12 +1202,13 @@ export default function LandingPage() {
         borderTop: "1px solid rgba(0,194,224,0.12)",
         borderBottom: "1px solid rgba(0,194,224,0.12)",
       }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0 }}>
+        <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div className="grid grid-cols-2 lg:grid-cols-4">
             {STATS.map((stat, i) => (
               <div key={i} style={{
                 textAlign: "center", padding: "8px 0",
-                borderRight: i < STATS.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none",
+                borderRight: (i % 2 === 0 || i === 1) && i < STATS.length - 1
+                  ? "1px solid rgba(255,255,255,0.08)" : "none",
               }}>
                 <div className="sc-number" style={{ fontSize: 34, fontWeight: 700, color: stat.color, lineHeight: 1.1 }}>{stat.value}</div>
                 <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 12.5, marginTop: 5 }}>{stat.label}</div>
@@ -1164,8 +1219,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── SERVICIOS ── */}
-      <section style={{ background: "#fff", padding: "88px 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+      <section className="py-16 md:py-[88px]" style={{ background: "#fff" }}>
+        <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div className="anim-fade-up" style={{ textAlign: "center", marginBottom: 56 }}>
             <div style={{ color: "#00c2e0", fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 12 }}>
               Módulos del Sistema
@@ -1181,28 +1236,29 @@ export default function LandingPage() {
           {/* Carousel wrapper */}
           <div style={{ position: "relative" }}>
 
-            {/* Prev button */}
+            {/* Prev button — desktop: outside track | mobile: hidden (uses dots) */}
             <button
               onClick={carouselPrev}
+              className="hidden md:flex"
               style={{
                 position: "absolute", left: -20, top: "45%", transform: "translateY(-50%)",
                 zIndex: 10, width: 40, height: 40, borderRadius: "50%",
                 background: "#0b1629", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                alignItems: "center", justifyContent: "center",
                 boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
                 transition: "background 0.2s ease, transform 0.15s ease",
               }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#00c2e0" }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#0b1629" }}
             >
-              <ChevronRight size={18} color="#fff" style={{ transform: "rotate(180deg)" }} />
+              <ChevronLeft size={18} color="#fff" />
             </button>
 
             {/* Track container */}
             <div ref={carouselRef} style={{ overflow: "hidden" }}>
               <div style={{
-                display: "flex", gap: GAP,
-                transform: `translateX(-${carouselIdx * (cardWidth + GAP)}px)`,
+                display: "flex", gap: carouselGap,
+                transform: `translateX(-${carouselIdx * (cardWidth + carouselGap)}px)`,
                 transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
               }}>
                 {SERVICES.map((svc, i) => (
@@ -1247,14 +1303,15 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Next button */}
+            {/* Next button — desktop only */}
             <button
               onClick={carouselNext}
+              className="hidden md:flex"
               style={{
                 position: "absolute", right: -20, top: "45%", transform: "translateY(-50%)",
                 zIndex: 10, width: 40, height: 40, borderRadius: "50%",
                 background: "#0b1629", border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                alignItems: "center", justifyContent: "center",
                 boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
                 transition: "background 0.2s ease, transform 0.15s ease",
               }}
@@ -1264,8 +1321,22 @@ export default function LandingPage() {
               <ChevronRight size={18} color="#fff" />
             </button>
 
-            {/* Dots */}
-            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 28 }}>
+            {/* Dots + mobile arrows row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 28 }}>
+              {/* Prev arrow — mobile only */}
+              <button
+                onClick={carouselPrev}
+                className="md:hidden"
+                style={{
+                  width: 34, height: 34, borderRadius: "50%",
+                  background: "#0b1629", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                }}
+              >
+                <ChevronLeft size={16} color="#fff" />
+              </button>
+
               {Array.from({ length: maxCarouselIdx + 1 }).map((_, i) => (
                 <button key={i} onClick={() => { setCarouselIdx(i); startAutoAdvance() }} style={{
                   width: i === carouselIdx ? 24 : 8, height: 8, borderRadius: 4, border: "none",
@@ -1273,6 +1344,20 @@ export default function LandingPage() {
                   cursor: "pointer", transition: "all 0.3s ease", padding: 0,
                 }} />
               ))}
+
+              {/* Next arrow — mobile only */}
+              <button
+                onClick={carouselNext}
+                className="md:hidden"
+                style={{
+                  width: 34, height: 34, borderRadius: "50%",
+                  background: "#0b1629", border: "none", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                }}
+              >
+                <ChevronRight size={16} color="#fff" />
+              </button>
             </div>
           </div>
         </div>
@@ -1280,8 +1365,8 @@ export default function LandingPage() {
 
       {/* ── NOTICIAS ── */}
       <section style={{ background: "#f0f4f8", padding: "88px 0" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", gap: 52, alignItems: "start" }}>
+        <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[3fr_2fr] lg:gap-[52px] items-start">
 
             {/* News */}
             <div className="anim-slide-l">
@@ -1367,7 +1452,7 @@ export default function LandingPage() {
         padding: "88px 0", position: "relative", overflow: "hidden",
       }}>
         <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "linear-gradient(rgba(0,194,224,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,194,224,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
-        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 24px", textAlign: "center", position: "relative", zIndex: 1 }}>
+        <div className="px-4 md:px-6" style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: 48 }}>
             <CtaFeaturePreviews />
           </div>
@@ -1393,8 +1478,8 @@ export default function LandingPage() {
 
       {/* ── FOOTER ── */}
       <footer style={{ background: "#060e1a", color: "rgba(255,255,255,0.55)", padding: "56px 0 28px" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
+        <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:gap-10" style={{ marginBottom: 48 }}>
             <div>
               <Link href="/landing" style={{ display: "flex", alignItems: "center", textDecoration: "none", marginBottom: 18 }}>
                 <Image src="/SOFTCOM_LOGO.png" alt="SOFTCOM Solutions" width={180} height={54}
