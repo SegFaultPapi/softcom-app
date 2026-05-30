@@ -22,7 +22,7 @@ export function AppPrivyProvider({ children }: { children: React.ReactNode }) {
           loginMessage: "Usa tu correo institucional o cuenta de Google.",
         },
         embeddedWallets: {
-          createOnLogin: "all-users",
+          createOnLogin: "off",
         },
       }}
     >

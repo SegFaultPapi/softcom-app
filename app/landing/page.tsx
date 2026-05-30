@@ -1008,13 +1008,20 @@ export default function LandingPage() {
       {/* ── HERO ── */}
       <section style={{
         minHeight: "92vh", paddingTop: 68,
-        background: "linear-gradient(135deg, #0b1629 0%, #0d2347 40%, #0a1f3d 70%, #061428 100%)",
+        backgroundImage: "url('/hero-sky.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         position: "relative", overflow: "hidden",
         display: "flex", alignItems: "center",
       }}>
+        {/* Dark overlay for readability */}
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(135deg, rgba(11,22,41,0.30) 0%, rgba(13,35,71,0.22) 50%, rgba(6,20,40,0.18) 100%)",
+        }} />
         {/* Grid */}
         <div style={{
-          position: "absolute", inset: 0, opacity: 0.045,
+          position: "absolute", inset: 0, opacity: 0.03,
           backgroundImage: "linear-gradient(rgba(0,194,224,1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,194,224,1) 1px, transparent 1px)",
           backgroundSize: "60px 60px",
         }} />
@@ -1034,14 +1041,16 @@ export default function LandingPage() {
                 transform: textVisible ? "translateY(0)" : "translateY(12px)",
               }}>
                 <h1 className="sc-display-font" style={{
-                  color: "#fff", fontSize: "clamp(28px, 3.4vw, 48px)", fontWeight: 800,
+                  color: "#fff", fontSize: "clamp(30px, 3.6vw, 52px)", fontWeight: 900,
                   lineHeight: 1.13, marginBottom: 18, letterSpacing: -0.5,
+                  textShadow: "0 2px 20px rgba(0,0,0,0.55)",
                 }}>
                   {s.title}
                 </h1>
                 <p style={{
-                  color: "rgba(255,255,255,0.58)", fontSize: 16, lineHeight: 1.75,
-                  marginBottom: 36, maxWidth: 450,
+                  color: "rgba(255,255,255,0.90)", fontSize: 17, lineHeight: 1.75,
+                  marginBottom: 36, maxWidth: 450, fontWeight: 500,
+                  textShadow: "0 1px 12px rgba(0,0,0,0.45)",
                 }}>
                   {s.desc}
                 </p>
