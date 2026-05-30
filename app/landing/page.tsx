@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronDown, ArrowRight, Menu, X, ChevronRight } from "lucide-react"
@@ -886,6 +886,31 @@ export default function LandingPage() {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const [navHovered, setNavHovered] = useState(false)
+  const [carouselIdx, setCarouselIdx] = useState(0)
+  const [cardWidth, setCardWidth] = useState(0)
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const autoAdvanceRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const CARDS_VISIBLE = 3
+  const GAP = 20
+  const maxCarouselIdx = SERVICES.length - CARDS_VISIBLE
+
+  const startAutoAdvance = useCallback(() => {
+    if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current)
+    autoAdvanceRef.current = setInterval(() => {
+      setCarouselIdx(i => (i >= maxCarouselIdx ? 0 : i + 1))
+    }, 2000)
+  }, [maxCarouselIdx])
+
+  const carouselPrev = useCallback(() => {
+    setCarouselIdx(i => (i <= 0 ? maxCarouselIdx : i - 1))
+    startAutoAdvance()
+  }, [maxCarouselIdx, startAutoAdvance])
+
+  const carouselNext = useCallback(() => {
+    setCarouselIdx(i => (i >= maxCarouselIdx ? 0 : i + 1))
+    startAutoAdvance()
+  }, [maxCarouselIdx, startAutoAdvance])
 
   const goToSlide = (next: number) => {
     if (next === slide) return
@@ -912,6 +937,23 @@ export default function LandingPage() {
     window.addEventListener("scroll", fn)
     return () => window.removeEventListener("scroll", fn)
   }, [])
+
+  useEffect(() => {
+    const measure = () => {
+      if (carouselRef.current) {
+        const w = carouselRef.current.offsetWidth
+        setCardWidth((w - GAP * (CARDS_VISIBLE - 1)) / CARDS_VISIBLE)
+      }
+    }
+    measure()
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [])
+
+  useEffect(() => {
+    startAutoAdvance()
+    return () => { if (autoAdvanceRef.current) clearInterval(autoAdvanceRef.current) }
+  }, [startAutoAdvance])
 
   const s = SLIDES[slide]
 
@@ -1136,52 +1178,102 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-            {SERVICES.map((svc, i) => {
-              const delays = ["delay-1","delay-2","delay-3","delay-4","delay-5","delay-6"]
-              return (
-                <div
-                  key={i}
-                  className={`anim-fade-up ${delays[i]}`}
-                  style={{
-                    background: "#f8fafc", borderRadius: 16,
-                    border: "1px solid #e2e8f0", overflow: "hidden",
-                    cursor: "pointer", transition: "all 0.25s ease",
-                  }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = "translateY(-4px)"
-                    el.style.boxShadow = `0 14px 36px rgba(0,0,0,0.09)`
-                    el.style.borderColor = svc.color
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = "translateY(0)"
-                    el.style.boxShadow = "none"
-                    el.style.borderColor = "#e2e8f0"
-                  }}
-                >
-                  {/* Visual header — uniform height via FeatureVisual */}
-                  <FeatureVisual type={svc.type} color={svc.color} />
+          {/* Carousel wrapper */}
+          <div style={{ position: "relative" }}>
 
-                  {/* Card body */}
-                  <div style={{ padding: "20px 22px" }}>
-                    <div style={{
-                      display: "inline-block", width: 6, height: 6, borderRadius: "50%",
-                      background: svc.color, marginBottom: 9,
-                      boxShadow: `0 0 8px ${svc.color}60`,
-                    }} />
-                    <h3 className="sc-display-font" style={{ fontSize: 16, fontWeight: 700, color: "#0b1629", marginBottom: 7 }}>
-                      {svc.title}
-                    </h3>
-                    <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.65, marginBottom: 14 }}>{svc.desc}</p>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: svc.color, fontSize: 13, fontWeight: 700 }}>
-                      Explorar módulo <ChevronRight size={13} />
+            {/* Prev button */}
+            <button
+              onClick={carouselPrev}
+              style={{
+                position: "absolute", left: -20, top: "45%", transform: "translateY(-50%)",
+                zIndex: 10, width: 40, height: 40, borderRadius: "50%",
+                background: "#0b1629", border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+                transition: "background 0.2s ease, transform 0.15s ease",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#00c2e0" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#0b1629" }}
+            >
+              <ChevronRight size={18} color="#fff" style={{ transform: "rotate(180deg)" }} />
+            </button>
+
+            {/* Track container */}
+            <div ref={carouselRef} style={{ overflow: "hidden" }}>
+              <div style={{
+                display: "flex", gap: GAP,
+                transform: `translateX(-${carouselIdx * (cardWidth + GAP)}px)`,
+                transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}>
+                {SERVICES.map((svc, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      flexShrink: 0, width: cardWidth,
+                      background: "#f8fafc", borderRadius: 16,
+                      border: "1px solid #e2e8f0", overflow: "hidden",
+                      cursor: "pointer", transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
+                    }}
+                    onMouseEnter={e => {
+                      const el = e.currentTarget as HTMLDivElement
+                      el.style.transform = "translateY(-4px)"
+                      el.style.boxShadow = `0 14px 36px rgba(0,0,0,0.09)`
+                      el.style.borderColor = svc.color
+                    }}
+                    onMouseLeave={e => {
+                      const el = e.currentTarget as HTMLDivElement
+                      el.style.transform = "translateY(0)"
+                      el.style.boxShadow = "none"
+                      el.style.borderColor = "#e2e8f0"
+                    }}
+                  >
+                    <FeatureVisual type={svc.type} color={svc.color} />
+                    <div style={{ padding: "20px 22px" }}>
+                      <div style={{
+                        display: "inline-block", width: 6, height: 6, borderRadius: "50%",
+                        background: svc.color, marginBottom: 9,
+                        boxShadow: `0 0 8px ${svc.color}60`,
+                      }} />
+                      <h3 className="sc-display-font" style={{ fontSize: 16, fontWeight: 700, color: "#0b1629", marginBottom: 7 }}>
+                        {svc.title}
+                      </h3>
+                      <p style={{ color: "#64748b", fontSize: 13, lineHeight: 1.65, marginBottom: 14 }}>{svc.desc}</p>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: svc.color, fontSize: 13, fontWeight: 700 }}>
+                        Explorar módulo <ChevronRight size={13} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                ))}
+              </div>
+            </div>
+
+            {/* Next button */}
+            <button
+              onClick={carouselNext}
+              style={{
+                position: "absolute", right: -20, top: "45%", transform: "translateY(-50%)",
+                zIndex: 10, width: 40, height: 40, borderRadius: "50%",
+                background: "#0b1629", border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
+                transition: "background 0.2s ease, transform 0.15s ease",
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#00c2e0" }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#0b1629" }}
+            >
+              <ChevronRight size={18} color="#fff" />
+            </button>
+
+            {/* Dots */}
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 28 }}>
+              {Array.from({ length: maxCarouselIdx + 1 }).map((_, i) => (
+                <button key={i} onClick={() => { setCarouselIdx(i); startAutoAdvance() }} style={{
+                  width: i === carouselIdx ? 24 : 8, height: 8, borderRadius: 4, border: "none",
+                  background: i === carouselIdx ? "#0b1629" : "#cbd5e1",
+                  cursor: "pointer", transition: "all 0.3s ease", padding: 0,
+                }} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
