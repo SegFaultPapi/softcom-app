@@ -16,6 +16,7 @@ type AuthContextType = {
   user: User | null
   logout: () => void
   loadingRole: boolean
+  getAccessToken: () => Promise<string | null>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -33,7 +34,7 @@ function fallbackRole(email: string | null | undefined): Role {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user: privyUser, logout: privyLogout } = usePrivy()
+  const { user: privyUser, logout: privyLogout, getAccessToken } = usePrivy()
 
   const email = privyUser?.email?.address ?? privyUser?.google?.email ?? null
   const nombre = privyUser?.google?.name ?? email ?? privyUser?.id ?? ""
@@ -50,11 +51,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoadingRole(true)
 
     // Sincroniza el perfil (crea uno nuevo si no existe) y obtiene el rol real
-    fetch("/api/auth/sync-profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, nombre }),
-    })
+    getAccessToken()
+      .then((token) =>
+        fetch("/api/auth/sync-profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ email, nombre }),
+        }),
+      )
       .then((res) => {
         if (!res.ok) throw new Error(`sync-profile ${res.status}`)
         return res.json()
@@ -71,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     : null
 
   return (
-    <AuthContext.Provider value={{ user, logout: privyLogout, loadingRole }}>
+    <AuthContext.Provider value={{ user, logout: privyLogout, loadingRole, getAccessToken }}>
       {children}
     </AuthContext.Provider>
   )

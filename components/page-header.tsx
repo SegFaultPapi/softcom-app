@@ -29,7 +29,7 @@ export function PageHeader({ title, description, crumbs, actions, tag }: Props) 
       padding: "28px 0 32px",
       marginBottom: 32,
     }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+      <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Breadcrumbs */}
         {crumbs && crumbs.length > 0 && (
           <div style={{ marginBottom: 12 }}>

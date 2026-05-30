@@ -242,7 +242,7 @@ function ChartsGerenteCartera() {
       : `$${(v / 1_000).toFixed(0)}K`
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 36 }}>
+    <div className="grid grid-cols-1 gap-4 mb-9 lg:grid-cols-3">
 
       {/* Donut composición */}
       <ChartCard title="Composición del portafolio" subtitle="Distribución por tipo de instrumento">
@@ -332,7 +332,7 @@ function ChartsGerenteCartera() {
 
 function ChartsAnalyst() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
+    <div className="grid grid-cols-1 gap-4 mb-9 md:grid-cols-2">
 
       {/* Curva de rendimientos */}
       <ChartCard title="Curva de rendimientos" subtitle="Tasa de rendimiento por plazo (%) — mercado actual">
@@ -396,7 +396,7 @@ function ChartsAnalyst() {
 
 function ChartsAdmin() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
+    <div className="grid grid-cols-1 gap-4 mb-9 md:grid-cols-2">
 
       {/* AUM por empresa */}
       <ChartCard title="AUM por empresa cliente" subtitle="Activos bajo gestión (millones MXN)">
@@ -492,7 +492,7 @@ function DashboardContent() {
           pointerEvents: "none",
         }} />
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 1 }}>
+        <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 20 }}>
             <div>
               <div className="anim-slide-l" style={{
@@ -537,7 +537,7 @@ function DashboardContent() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 48px" }}>
+      <div className="px-4 md:px-6 py-6 md:py-8" style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 48 }}>
 
         {/* ── Financial Hero Strip (gerente_cartera) ── */}
         {user.role === "gerente_cartera" && (
@@ -553,7 +553,7 @@ function DashboardContent() {
             }} />
             <div style={{ position: "absolute", top: "-30%", right: "5%", width: 260, height: 260, borderRadius: "50%", background: "radial-gradient(circle,rgba(0,194,224,0.09) 0%,transparent 70%)", pointerEvents: "none" }} />
 
-            <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "1fr 1px 1fr 1px 1fr", gap: 0, alignItems: "center" }}>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_1px_1fr_1px_1fr] md:gap-0" style={{ position: "relative", zIndex: 1, alignItems: "center" }}>
 
               {/* Capital Total */}
               <div style={{ padding: "0 32px 0 0" }}>
@@ -573,7 +573,7 @@ function DashboardContent() {
                 <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "5px 0 0" }}>85.1% invertido</p>
               </div>
 
-              <div style={{ width: 1, height: 80, background: "rgba(255,255,255,0.08)" }} />
+              <div className="hidden md:block" style={{ width: 1, height: 80, background: "rgba(255,255,255,0.08)" }} />
 
               {/* Capital Invertido */}
               <div style={{ padding: "0 32px" }}>
@@ -594,7 +594,7 @@ function DashboardContent() {
                 </div>
               </div>
 
-              <div style={{ width: 1, height: 80, background: "rgba(255,255,255,0.08)" }} />
+              <div className="hidden md:block" style={{ width: 1, height: 80, background: "rgba(255,255,255,0.08)" }} />
 
               {/* Total por Empresa */}
               <div style={{ padding: "0 0 0 32px" }}>
@@ -624,11 +624,7 @@ function DashboardContent() {
 
         {/* ── KPI Stats ── */}
         {stats.length > 0 && (
-          <div className="anim-fade-up delay-1" style={{
-            display: "grid",
-            gridTemplateColumns: `repeat(${stats.length}, 1fr)`,
-            gap: 14, marginBottom: 36,
-          }}>
+          <div className={`anim-fade-up delay-1 grid gap-3 mb-9 grid-cols-2 ${stats.length === 4 ? "lg:grid-cols-4" : stats.length === 3 ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
             {stats.map((s, i) => (
               <div key={i} className="sc-kpi-card" style={{ borderLeft: `4px solid ${s.color}` }}>
                 <div style={{ fontSize: 26, fontWeight: 700, color: s.color, marginBottom: 4 }}

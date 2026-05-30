@@ -5,6 +5,7 @@ import { MoreHorizontal, Plus, Pencil, Trash2, Users, Loader2, RefreshCw } from 
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
 import type { Role } from "@/lib/auth-context"
+import { useApiFetch } from "@/hooks/use-api-fetch"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -66,6 +67,7 @@ export default function AdminUsuariosPage() {
 }
 
 function AdminUsuariosContent() {
+  const apiFetch = useApiFetch()
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -78,7 +80,7 @@ function AdminUsuariosContent() {
     setLoading(true)
     setFetchError(null)
     try {
-      const res = await fetch("/api/admin/usuarios", { cache: "no-store" })
+      const res = await apiFetch("/api/admin/usuarios", { cache: "no-store" })
       const data = await res.json()
       if (!res.ok) {
         setFetchError(data.error ?? "Error al obtener usuarios")
@@ -109,7 +111,7 @@ function AdminUsuariosContent() {
   const handleDelete = async () => {
     if (!toDelete) return
     setDeleting(true)
-    await fetch(`/api/admin/usuarios/${encodeURIComponent(toDelete.email)}`, {
+    await apiFetch(`/api/admin/usuarios/${encodeURIComponent(toDelete.email)}`, {
       method: "DELETE",
     })
     setToDelete(null)
@@ -262,6 +264,7 @@ function UsuarioFormDialog({
   usuario: UsuarioRow | null
   onSuccess: () => void
 }) {
+  const apiFetch = useApiFetch()
   const esEdicion = Boolean(usuario)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -286,13 +289,13 @@ function UsuarioFormDialog({
 
     let res: Response
     if (esEdicion) {
-      res = await fetch(`/api/admin/usuarios/${encodeURIComponent(usuario!.email)}`, {
+      res = await apiFetch(`/api/admin/usuarios/${encodeURIComponent(usuario!.email)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, nombre }),
       })
     } else {
-      res = await fetch("/api/admin/usuarios", {
+      res = await apiFetch("/api/admin/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, role, nombre }),

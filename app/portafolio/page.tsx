@@ -314,7 +314,7 @@ function PortafolioContent() {
         }
       />
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 48px" }}>
+      <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 48 }}>
 
         {/* Client selector */}
         {isGerente && (
@@ -359,9 +359,7 @@ function PortafolioContent() {
         )}
 
         {/* KPI Cards */}
-        <div className="anim-fade-up delay-1" style={{
-          display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28,
-        }}>
+        <div className="anim-fade-up delay-1 grid grid-cols-2 gap-3 mb-7 lg:grid-cols-4">
           <KPICardHero
             label="Capital Total"
             value={fmtShort(capitalTotal)}
@@ -397,7 +395,7 @@ function PortafolioContent() {
         </div>
 
         {/* Charts + Table row */}
-        <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: 20, marginBottom: 20 }}>
+        <div className="grid grid-cols-1 gap-5 mb-5 lg:grid-cols-[380px_1fr]">
 
           {/* Charts column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { useApiFetch } from "@/hooks/use-api-fetch"
 import {
   ShoppingCart, Banknote, CheckCircle, AlertTriangle,
   ChevronDown, RotateCcw, Clock, Database, Wifi, WifiOff,
@@ -162,6 +163,7 @@ function NumInput({
 
 // ── Main content ─────────────────────────────────────────────────────────────
 function OperacionesContent() {
+  const apiFetch = useApiFetch()
   const [op, setOp] = useState<Operacion>("compra")
   const [clienteId, setClienteId] = useState("")
   const [instrId, setInstrId] = useState("")
@@ -186,7 +188,7 @@ function OperacionesContent() {
   useEffect(() => {
     async function cargarCatalogos() {
       try {
-        const res = await fetch("/api/operaciones/catalogos", { cache: "no-store" })
+        const res = await apiFetch("/api/operaciones/catalogos", { cache: "no-store" })
         if (!res.ok) throw new Error(`catalogos ${res.status}`)
         const { instrumentos: dbInstr, portafolios: dbPortafolios } = await res.json()
         const hayInstr = dbInstr?.length > 0
@@ -245,7 +247,7 @@ function OperacionesContent() {
   const cargarTransacciones = useCallback(async () => {
     setLoadingTx(true)
     try {
-      const txRes = await fetch("/api/operaciones", { cache: "no-store" })
+      const txRes = await apiFetch("/api/operaciones", { cache: "no-store" })
       if (!txRes.ok) throw new Error(`operaciones ${txRes.status}`)
       const data: Array<{
         id_transaccion: number; tipo_operacion: string; cantidad: number
@@ -271,7 +273,7 @@ function OperacionesContent() {
     } finally {
       setLoadingTx(false)
     }
-  }, [])
+  }, [apiFetch])
 
   useEffect(() => { cargarTransacciones() }, [cargarTransacciones])
 
@@ -323,7 +325,7 @@ function OperacionesContent() {
     setConfirmError(null)
 
     if (!usandoMock && instrumento?.dbId && cliente?.dbPortafolioId) {
-      const saveRes = await fetch("/api/operaciones", {
+      const saveRes = await apiFetch("/api/operaciones", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -372,7 +374,7 @@ function OperacionesContent() {
         ]}
       />
 
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px 56px" }}>
+      <div className="px-4 md:px-6" style={{ maxWidth: 980, margin: "0 auto", paddingBottom: 56 }}>
 
 
         {/* Success toast */}
@@ -418,7 +420,7 @@ function OperacionesContent() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 24, alignItems: "stretch" }}>
+        <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-[1fr_380px]">
 
           {/* ── Form ── */}
           <div style={{
@@ -513,7 +515,7 @@ function OperacionesContent() {
 
                 {/* Precio + Cantidad */}
                 <div style={{ height: 1, background: "#f1f5f9", margin: "2px 0" }} />
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Precio unitario</Label>
                     <NumInput

@@ -23,6 +23,12 @@ type NavLink = {
   roles: Role[]
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Administrador",
+  gerente_cartera: "Gerente de Cartera",
+  analyst: "Analista",
+}
+
 // Rutas según roles reales del modelo SoftCom
 const LINKS: NavLink[] = [
   { href: "/dashboard",           label: "Inicio",             roles: ["admin", "gerente_cartera", "analyst"] },
@@ -124,7 +130,7 @@ export function NavBar() {
             background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 20, padding: "3px 4px 3px 8px",
           }}>
-            <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, textTransform: "capitalize" }}>{user.role}</span>
+            <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 12 }}>{ROLE_LABEL[user.role] ?? user.role}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" style={{ padding: "2px 6px", borderRadius: 16, background: "rgba(0,194,224,0.15)", border: "none" }}>
@@ -142,7 +148,7 @@ export function NavBar() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     <span style={{ fontWeight: 700 }}>{user.nombre}</span>
                     <span style={{ fontSize: 11, opacity: 0.6 }}>{user.email}</span>
-                    <span style={{ fontSize: 11, color: "#00c2e0", textTransform: "capitalize" }}>Rol: {user.role}</span>
+                    <span style={{ fontSize: 11, color: "#00c2e0" }}>Rol: {ROLE_LABEL[user.role] ?? user.role}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

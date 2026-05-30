@@ -268,7 +268,7 @@ function CetesForm() {
   const handleReset = () => { setQty("") }
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "stretch" }}>
+    <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-2">
 
       {/* ── Left: Inputs ── */}
       <div style={{
@@ -288,7 +288,7 @@ function CetesForm() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <StaticField label="Valor nominal (VN)" value="$10.00" sub="MXN" />
             <StaticField label="Tasa de referencia" value="6.5%" sub="Banxico" />
           </div>
@@ -383,7 +383,7 @@ function BonoForm() {
   const aniosValido = !isNaN(aniosNum) && aniosNum > 1
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "stretch" }}>
+    <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-2">
 
       {/* ── Left: Inputs ── */}
       <div style={{
@@ -403,13 +403,13 @@ function BonoForm() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <FinInput id="b-F" label="Valor nominal (VN)" value={F} onChange={setF} suffix="MXN"
               help="Por título, típico: $100" />
             <FinInput id="b-qty" label="Número de títulos" value={qty} onChange={setQty}
               help="Cantidad a adquirir" min="1" step="1" />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid grid-cols-2 gap-3">
             <FinInput id="b-cupon" label="Tasa cupón anual" value={cupon} onChange={setCupon} suffix="%"
               help="Tasa nominal del instrumento" />
             <FinInput id="b-r" label="Tasa de descuento" value={r} onChange={setR} suffix="%"
@@ -549,7 +549,7 @@ function ValuacionContent() {
         ]}
       />
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 48px" }}>
+      <div className="px-4 md:px-6" style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 48 }}>
         <div style={{
           display: "inline-flex", background: "#fff", border: "1px solid #e2e8f0",
           borderRadius: 10, padding: 4, marginBottom: 24, gap: 4,
