@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { MoreHorizontal, Plus, Pencil, Trash2, Users, Loader2 } from "lucide-react"
+import { MoreHorizontal, Plus, Pencil, Trash2, Users, Loader2, RefreshCw } from "lucide-react"
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
 import type { Role } from "@/lib/auth-context"
@@ -127,10 +127,16 @@ function AdminUsuariosContent() {
           { label: "Usuarios" },
         ]}
         actions={
-          <Button size="sm" onClick={handleNew}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo usuario
-          </Button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button size="sm" variant="outline" onClick={fetchUsuarios} disabled={loading}>
+              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Actualizar
+            </Button>
+            <Button size="sm" onClick={handleNew}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo usuario
+            </Button>
+          </div>
         }
       />
 

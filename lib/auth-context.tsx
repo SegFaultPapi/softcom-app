@@ -55,13 +55,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, nombre }),
     })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.role) {
-          setRole(data.role as Role)
-        } else {
-          setRole(fallbackRole(email))
-        }
+      .then((res) => {
+        if (!res.ok) throw new Error(`sync-profile ${res.status}`)
+        return res.json()
+      })
+      .then((data: { role?: string }) => {
+        setRole((data.role as Role) ?? fallbackRole(email))
       })
       .catch(() => setRole(fallbackRole(email)))
       .finally(() => setLoadingRole(false))

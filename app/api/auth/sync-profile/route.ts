@@ -17,31 +17,44 @@ export async function POST(req: Request) {
 
   const supabase = adminClient()
 
-  // 1. Verifica si ya existe el perfil
-  const { data: existing } = await supabase
+  // Upsert atómico: inserta si no existe, no hace nada si ya existe.
+  // Esto evita la condición de carrera del check-then-insert anterior.
+  const { error: upsertError } = await supabase
+    .from("profiles")
+    .upsert(
+      { email, nombre: nombre ?? "", role: "analyst" },
+      { onConflict: "email", ignoreDuplicates: true },
+    )
+
+  if (upsertError) {
+    return NextResponse.json({ error: upsertError.message }, { status: 500 })
+  }
+
+  // Si tenemos nombre y el perfil lo tiene vacío, actualizarlo.
+  if (nombre) {
+    await supabase
+      .from("profiles")
+      .update({ nombre })
+      .eq("email", email)
+      .is("nombre", null)
+
+    await supabase
+      .from("profiles")
+      .update({ nombre })
+      .eq("email", email)
+      .eq("nombre", "")
+  }
+
+  // Leer el perfil definitivo (con el rol real, que el admin pudo haber cambiado).
+  const { data, error } = await supabase
     .from("profiles")
     .select("email, nombre, role")
     .eq("email", email)
-    .maybeSingle()
-
-  if (existing) {
-    // El perfil ya existe; solo actualiza el nombre si el admin no lo ha personalizado
-    if (nombre && !existing.nombre) {
-      await supabase
-        .from("profiles")
-        .update({ nombre })
-        .eq("email", email)
-    }
-    return NextResponse.json({ ...existing, nombre: existing.nombre || nombre })
-  }
-
-  // 2. No existe → crear con rol analyst por defecto
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert({ email, nombre: nombre ?? "", role: "analyst" })
-    .select("email, nombre, role")
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
   return NextResponse.json(data)
 }
