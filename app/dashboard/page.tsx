@@ -8,6 +8,13 @@ import {
   Coins, Shield, BookOpen, ArrowUpRight,
 } from "lucide-react"
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   PieChart as RePieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -685,73 +692,101 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* ── Module cards ── */}
-        <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))", marginBottom: 36 }}>
-          {items.map((item, idx) => {
-            const Icon = item.icon
-            const delays = ["delay-1", "delay-2", "delay-3", "delay-4", "delay-5", "delay-6"]
-            return (
-              <Link key={`${item.href}-${idx}`} href={item.href} style={{ textDecoration: "none" }}>
-                <div
-                  className={`anim-fade-up ${delays[idx] ?? ""}`}
-                  style={{
-                    background: "#fff", borderRadius: 16,
-                    padding: "26px 22px", border: "1px solid #e2e8f0",
-                    height: "100%", boxSizing: "border-box",
-                    transition: "all 0.22s ease", cursor: "pointer", position: "relative",
-                  }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = "translateY(-3px)"
-                    el.style.borderColor = item.color
-                    el.style.boxShadow = `0 12px 32px rgba(0,0,0,0.07)`
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = "translateY(0)"
-                    el.style.borderColor = "#e2e8f0"
-                    el.style.boxShadow = "none"
-                  }}
-                >
-                  {item.badge && (
-                    <span style={{
-                      position: "absolute", top: 14, right: 14,
-                      background: `${item.color}15`, border: `1px solid ${item.color}35`,
-                      color: item.color, fontSize: 10, fontWeight: 700,
-                      padding: "2px 7px", borderRadius: 10, letterSpacing: "0.05em",
-                    }}>
-                      {item.badge}
-                    </span>
-                  )}
+        {/* ── Module cards carousel ── */}
+        <div className="anim-fade-up delay-4" style={{ position: "relative", marginBottom: 36, paddingBottom: 8 }}>
+          <Carousel
+            opts={{ align: "start", loop: false }}
+            style={{ width: "100%" }}
+          >
+            <CarouselContent style={{ marginLeft: -12 }}>
+              {items.map((item, idx) => {
+                const Icon = item.icon
+                return (
+                  <CarouselItem
+                    key={`${item.href}-${idx}`}
+                    style={{ paddingLeft: 12, flex: "0 0 320px", minWidth: 0 }}
+                  >
+                    <Link href={item.href} style={{ textDecoration: "none", display: "block", height: "100%" }}>
+                      <div
+                        style={{
+                          background: "#fff", borderRadius: 16,
+                          padding: "26px 22px", border: "1px solid #e2e8f0",
+                          height: "100%", boxSizing: "border-box",
+                          transition: "all 0.22s ease", cursor: "pointer", position: "relative",
+                          display: "flex", flexDirection: "column",
+                        }}
+                        onMouseEnter={e => {
+                          const el = e.currentTarget as HTMLDivElement
+                          el.style.transform = "translateY(-3px)"
+                          el.style.borderColor = item.color
+                          el.style.boxShadow = `0 12px 32px rgba(0,0,0,0.07)`
+                        }}
+                        onMouseLeave={e => {
+                          const el = e.currentTarget as HTMLDivElement
+                          el.style.transform = "translateY(0)"
+                          el.style.borderColor = "#e2e8f0"
+                          el.style.boxShadow = "none"
+                        }}
+                      >
+                        {item.badge && (
+                          <span style={{
+                            position: "absolute", top: 14, right: 14,
+                            background: `${item.color}15`, border: `1px solid ${item.color}35`,
+                            color: item.color, fontSize: 10, fontWeight: 700,
+                            padding: "2px 7px", borderRadius: 10, letterSpacing: "0.05em",
+                          }}>
+                            {item.badge}
+                          </span>
+                        )}
 
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 12,
-                    background: `${item.color}15`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    marginBottom: 16,
-                  }}>
-                    <Icon size={22} color={item.color} />
-                  </div>
+                        <div style={{
+                          width: 48, height: 48, borderRadius: 12,
+                          background: `${item.color}15`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          marginBottom: 16, flexShrink: 0,
+                        }}>
+                          <Icon size={22} color={item.color} />
+                        </div>
 
-                  <h3 className="sc-display-font" style={{
-                    fontSize: 16, fontWeight: 700, color: "#0b1629", marginBottom: 7,
-                  }}>
-                    {item.title}
-                  </h3>
-                  <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 16, flex: 1 }}>
-                    {item.description}
-                  </p>
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 4,
-                    color: item.color, fontSize: 13, fontWeight: 700,
-                  }}>
-                    {item.badge ? "Ver detalle" : "Ir al módulo"}
-                    <ChevronRight size={13} />
-                  </div>
-                </div>
-              </Link>
-            )
-          })}
+                        <h3 className="sc-display-font" style={{
+                          fontSize: 16, fontWeight: 700, color: "#0b1629", marginBottom: 7,
+                        }}>
+                          {item.title}
+                        </h3>
+                        <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 16, flex: 1 }}>
+                          {item.description}
+                        </p>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 4,
+                          color: item.color, fontSize: 13, fontWeight: 700,
+                          marginTop: "auto",
+                        }}>
+                          {item.badge ? "Ver detalle" : "Ir al módulo"}
+                          <ChevronRight size={13} />
+                        </div>
+                      </div>
+                    </Link>
+                  </CarouselItem>
+                )
+              })}
+            </CarouselContent>
+            <CarouselPrevious
+              style={{
+                left: -20,
+                background: "#0b1629",
+                border: "1px solid rgba(0,194,224,0.3)",
+                color: "#00c2e0",
+              }}
+            />
+            <CarouselNext
+              style={{
+                right: -20,
+                background: "#0b1629",
+                border: "1px solid rgba(0,194,224,0.3)",
+                color: "#00c2e0",
+              }}
+            />
+          </Carousel>
         </div>
 
         {/* ── System status footer ── */}

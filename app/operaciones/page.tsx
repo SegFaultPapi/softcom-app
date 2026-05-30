@@ -476,11 +476,6 @@ function OperacionesContent() {
                       <span className="sc-number" style={{ fontWeight: 700, color: "#0b1629" }}>
                         {fmtMXN(cliente.saldo)}
                       </span>
-                      {cliente.dbPortafolioId && (
-                        <span style={{ marginLeft: 6, color: "#00c2e0" }}>
-                          <Database size={10} style={{ display: "inline", marginBottom: -1 }} /> id={cliente.dbPortafolioId}
-                        </span>
-                      )}
                     </p>
                   )}
                 </div>
@@ -504,12 +499,6 @@ function OperacionesContent() {
                         <span style={{ fontSize: 13, color: "#94a3b8" }}>
                           Vto: <strong style={{ color: "#0b1629" }}>{instrumento.vto}</strong>
                         </span>
-                      {instrumento.dbId && (
-                        <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                          <Database size={10} style={{ display: "inline", marginBottom: -1 }} />
-                          <strong style={{ color: "#00c2e0" }}> id={instrumento.dbId}</strong>
-                        </span>
-                      )}
                       {op === "venta" && posicion && (
                         <span style={{ fontSize: 12, color: "#94a3b8" }}>
                           En portafolio:{" "}

@@ -25,11 +25,14 @@ type NavLink = {
 
 // Rutas según roles reales del modelo SoftCom
 const LINKS: NavLink[] = [
-  { href: "/dashboard",      label: "Inicio",               roles: ["admin", "gerente_cartera", "analyst"] },
-  { href: "/valuacion",      label: "Valuación",            roles: ["gerente_cartera", "analyst"] },
-  { href: "/portafolio",     label: "Portafolio",           roles: ["gerente_cartera", "analyst"] },
-  { href: "/operaciones",    label: "Operaciones",          roles: ["gerente_cartera"] },
-  { href: "/admin/usuarios", label: "Administración",       roles: ["admin"] },
+  { href: "/dashboard",           label: "Inicio",             roles: ["admin", "gerente_cartera", "analyst"] },
+  { href: "/valuacion",           label: "Valuación",          roles: ["gerente_cartera", "analyst"] },
+  { href: "/portafolio",          label: "Portafolio",         roles: ["gerente_cartera", "analyst"] },
+  { href: "/operaciones",         label: "Operaciones",        roles: ["gerente_cartera"] },
+  { href: "/alertas",             label: "Alertas",            roles: ["gerente_cartera"] },
+  { href: "/anualidades",         label: "Anualidades",        roles: ["analyst"] },
+  { href: "/estados-financieros", label: "Est. Financieros",   roles: ["analyst"] },
+  { href: "/admin/usuarios",      label: "Administración",     roles: ["admin"] },
 ]
 
 function initials(name: string) {
