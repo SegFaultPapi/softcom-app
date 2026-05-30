@@ -13,6 +13,7 @@ import {
 import { RouteGuard } from "@/components/route-guard"
 import { useAuth } from "@/lib/auth-context"
 import { PageHeader } from "@/components/page-header"
+import { toast } from "@/hooks/use-toast"
 
 // ── Mock data (fallback cuando DB está vacía) ──────────────
 const CLIENTES = [
@@ -118,6 +119,10 @@ function exportCSV(posiciones: Posicion[], valorTotal: number, plTotal: number) 
   const a = document.createElement("a")
   a.href = url; a.download = `portafolio_${new Date().toISOString().slice(0, 10)}.csv`; a.click()
   URL.revokeObjectURL(url)
+  toast({
+    title: "Exportación completada",
+    description: `El archivo CSV con ${posiciones.length} posiciones fue descargado.`,
+  })
 }
 
 // ── KPI Card (normal) ──────────────────────────────────────

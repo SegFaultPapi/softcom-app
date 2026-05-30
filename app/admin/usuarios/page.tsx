@@ -6,6 +6,7 @@ import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
 import type { Role } from "@/lib/auth-context"
 import { useApiFetch } from "@/hooks/use-api-fetch"
+import { toast } from "@/hooks/use-toast"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Table,
@@ -111,12 +112,17 @@ function AdminUsuariosContent() {
   const handleDelete = async () => {
     if (!toDelete) return
     setDeleting(true)
+    const nombre = toDelete.nombre ?? toDelete.email
     await apiFetch(`/api/admin/usuarios/${encodeURIComponent(toDelete.email)}`, {
       method: "DELETE",
     })
     setToDelete(null)
     setDeleting(false)
     fetchUsuarios()
+    toast({
+      title: "Usuario eliminado",
+      description: `${nombre} fue eliminado del sistema.`,
+    })
   }
 
   return (
@@ -307,9 +313,20 @@ function UsuarioFormDialog({
 
     if (!res.ok) {
       setError(data.error ?? "Error al guardar")
+      toast({
+        title: esEdicion ? "Error al actualizar" : "Error al crear usuario",
+        description: data.error ?? "No se pudo guardar. Intenta de nuevo.",
+        variant: "destructive",
+      })
       return
     }
 
+    toast({
+      title: esEdicion ? "Usuario actualizado" : "Usuario creado",
+      description: esEdicion
+        ? `Los datos de ${nombre || email} fueron actualizados.`
+        : `${nombre || email} fue agregado al sistema.`,
+    })
     onOpenChange(false)
     onSuccess()
   }

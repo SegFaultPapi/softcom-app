@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
+import { toast } from "@/hooks/use-toast"
 
 type Operacion = "compra" | "venta"
 
@@ -341,6 +342,11 @@ function OperacionesContent() {
         const err = await saveRes.json()
         setConfirmError(err.error ?? "Error al guardar")
         setSaving(false)
+        toast({
+          title: "Error al registrar operación",
+          description: err.error ?? "No se pudo guardar la operación. Intenta de nuevo.",
+          variant: "destructive",
+        })
         return
       }
       await cargarTransacciones()
@@ -349,6 +355,10 @@ function OperacionesContent() {
     setSaving(false)
     setConfirmed(true)
     setInstrId(""); setPrecio(""); setCantidad("")
+    toast({
+      title: op === "compra" ? "Compra registrada" : "Venta registrada",
+      description: `Operación confirmada exitosamente.`,
+    })
     setTimeout(() => setConfirmed(false), 5000)
   }
 

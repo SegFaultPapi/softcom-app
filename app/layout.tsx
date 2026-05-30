@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { NavBar } from '@/components/nav-bar'
 import { AppPrivyProvider } from '@/components/dynamic-provider'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
   title: 'SoftCom Solutions — Plataforma de Valuación de Bonos',
@@ -34,6 +35,7 @@ export default function RootLayout({
             <main>{children}</main>
           </AuthProvider>
         </AppPrivyProvider>
+        <Toaster />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
