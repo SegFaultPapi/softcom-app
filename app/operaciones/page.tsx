@@ -400,10 +400,7 @@ function OperacionesContent() {
                 Operación registrada exitosamente
               </p>
               <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>
-                {usandoMock
-                  ? "Modo mock — la operación no fue guardada en base de datos."
-                  : "Guardada en Supabase. El log fue actualizado."
-                }
+                Guardada en Supabase. El log fue actualizado.
               </p>
             </div>
           </div>
@@ -825,24 +822,8 @@ function OperacionesContent() {
               Confirmar {opLabel}
             </h2>
             <p style={{ fontSize: 14, color: "#64748b", marginBottom: 24 }}>
-              {usandoMock
-                ? "Esta operación usa datos mock y no será guardada en la base de datos."
-                : "Esta acción registrará la operación de forma inmutable en Supabase."
-              }
+              Esta acción registrará la operación de forma inmutable en Supabase.
             </p>
-
-            {usandoMock && (
-              <div style={{
-                display: "flex", gap: 8, padding: "10px 14px", marginBottom: 16,
-                background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.25)",
-                borderRadius: 8,
-              }}>
-                <AlertTriangle size={14} color="#f59e0b" style={{ flexShrink: 0, marginTop: 2 }} />
-                <p style={{ margin: 0, fontSize: 12, color: "#92400e" }}>
-                  Instrumento o portafolio sin ID real en DB. Siembra datos en Supabase para persistir.
-                </p>
-              </div>
-            )}
 
             <div style={{ background: "#f8fafc", borderRadius: 12, padding: "16px", marginBottom: 20 }}>
               {[

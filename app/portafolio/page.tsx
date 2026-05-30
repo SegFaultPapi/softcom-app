@@ -524,7 +524,6 @@ function PortafolioContent() {
               <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>
                 {isGerente ? clienteNombre : "Tu portafolio"} · {posiciones.length} instrumentos
                 {esReal && <span style={{ marginLeft: 6, color: "#22c55e", fontSize: 10, fontWeight: 700 }}>● BD</span>}
-                {!esReal && !loadingReal && <span style={{ marginLeft: 6, color: "#94a3b8", fontSize: 10 }}>mock</span>}
               </p>
             </div>
             <div style={{ overflowX: "auto" }}>
@@ -658,7 +657,7 @@ function PortafolioContent() {
 
         {/* Note */}
         <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
-          {esReal ? "Datos reales de base de datos" : "Datos de demostración (mock)"} · {new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}
+          {new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}
         </p>
       </div>
     </div>
