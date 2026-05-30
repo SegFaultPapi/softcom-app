@@ -7,7 +7,6 @@ import {
 } from "lucide-react"
 import { RouteGuard } from "@/components/route-guard"
 import { PageHeader } from "@/components/page-header"
-import { supabase } from "@/lib/supabase"
 
 type Operacion = "compra" | "venta"
 
@@ -90,8 +89,8 @@ const fmtFecha = (iso: string) => {
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <label style={{
-      fontSize: 11, fontWeight: 700, letterSpacing: "0.07em",
-      textTransform: "uppercase", color: "#64748b", display: "block", marginBottom: 6,
+      fontSize: 12, fontWeight: 700, letterSpacing: "0.07em",
+      textTransform: "uppercase", color: "#64748b", display: "block", marginBottom: 8,
     }}>
       {children}
     </label>
@@ -109,9 +108,9 @@ function SelectField({
         disabled={disabled}
         style={{
           width: "100%", appearance: "none",
-          padding: "10px 36px 10px 14px", borderRadius: 8,
+          padding: "13px 40px 13px 16px", borderRadius: 10,
           border: "1.5px solid #e2e8f0", background: disabled ? "#f8fafc" : "#fff",
-          fontSize: 14, fontFamily: "'DM Sans', sans-serif",
+          fontSize: 15, fontFamily: "'DM Sans', sans-serif",
           color: disabled ? "#94a3b8" : "#0b1629",
           cursor: disabled ? "not-allowed" : "pointer", outline: "none",
         }}
@@ -133,22 +132,22 @@ function NumInput({
   const [focused, setFocused] = useState(false)
   return (
     <div style={{ position: "relative" }}>
-      <input
-        id={id} type="number" value={value} min={min} step={step}
-        onChange={e => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          width: "100%", boxSizing: "border-box",
-          padding: suffix ? "10px 52px 10px 14px" : "10px 14px",
-          borderRadius: 8, outline: "none",
-          border: `1.5px solid ${focused ? "#00c2e0" : "#e2e8f0"}`,
-          fontSize: 15, fontFamily: "'IBM Plex Mono', monospace",
-          color: "#0b1629", background: "#fff",
-          transition: "border-color 0.15s",
-          boxShadow: focused ? "0 0 0 3px rgba(0,194,224,0.1)" : "none",
-        }}
-      />
+        <input
+          id={id} type="number" value={value} min={min} step={step}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            width: "100%", boxSizing: "border-box",
+            padding: suffix ? "13px 56px 13px 16px" : "13px 16px",
+            borderRadius: 10, outline: "none",
+            border: `1.5px solid ${focused ? "#00c2e0" : "#e2e8f0"}`,
+            fontSize: 16, fontFamily: "'IBM Plex Mono', monospace",
+            color: "#0b1629", background: "#fff",
+            transition: "border-color 0.15s",
+            boxShadow: focused ? "0 0 0 3px rgba(0,194,224,0.1)" : "none",
+          }}
+        />
       {suffix && (
         <span style={{
           position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
@@ -402,27 +401,8 @@ function OperacionesContent() {
         ]}
       />
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px 48px" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "0 24px 56px" }}>
 
-        {/* DB status badge */}
-        {dbConectado !== null && (
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            padding: "5px 12px", borderRadius: 20, marginBottom: 16,
-            background: dbConectado ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)",
-            border: `1px solid ${dbConectado ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`,
-            fontSize: 11, fontWeight: 600,
-            color: dbConectado ? "#16a34a" : "#dc2626",
-          }}>
-            {dbConectado ? <Wifi size={11} /> : <WifiOff size={11} />}
-            {dbConectado ? "Conectado a Supabase" : "Sin conexión — modo mock"}
-            {usandoMock && dbConectado && (
-              <span style={{ marginLeft: 4, color: "#94a3b8", fontWeight: 400 }}>
-                · instrumento/portafolio mock (no se guardará en DB)
-              </span>
-            )}
-          </div>
-        )}
 
         {/* Success toast */}
         {confirmed && (
@@ -467,12 +447,12 @@ function OperacionesContent() {
           </div>
         )}
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 24, alignItems: "stretch" }}>
 
           {/* ── Form ── */}
           <div style={{
             background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0",
-            overflow: "hidden",
+            overflow: "hidden", display: "flex", flexDirection: "column",
           }}>
             {/* Tab switcher */}
             <div style={{ display: "flex", borderBottom: "1px solid #f1f5f9", background: "#f8fafc" }}>
@@ -481,11 +461,13 @@ function OperacionesContent() {
                   key={t}
                   onClick={() => { setOp(t); setInstrId(""); setPrecio(""); setCantidad("") }}
                   style={{
-                    flex: 1, padding: "14px 0", border: "none",
-                    cursor: "pointer", fontWeight: 700, fontSize: 14,
+                    flex: 1, padding: "17px 0", border: "none",
+                    cursor: "pointer", fontWeight: 700, fontSize: 15,
+                    letterSpacing: "0.01em",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     transition: "all 0.15s",
                     background: op === t
-                      ? (t === "compra" ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)")
+                      ? (t === "compra" ? "rgba(34,197,94,0.07)" : "rgba(239,68,68,0.07)")
                       : "transparent",
                     color: op === t
                       ? (t === "compra" ? "#22c55e" : "#ef4444")
@@ -495,13 +477,14 @@ function OperacionesContent() {
                       : "2px solid transparent",
                   }}
                 >
+                  {t === "compra" ? <ShoppingCart size={15} /> : <Banknote size={15} />}
                   {t === "compra" ? "Compra" : "Venta"}
                 </button>
               ))}
             </div>
 
-            <div style={{ padding: "24px" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            <div style={{ padding: "32px 32px 28px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
                 {/* Cliente */}
                 <div>
@@ -517,9 +500,9 @@ function OperacionesContent() {
                     ))}
                   </SelectField>
                   {cliente && (
-                    <p style={{ margin: "5px 0 0", fontSize: 12, color: "#64748b" }}>
+                    <p style={{ margin: "7px 0 0", fontSize: 13, color: "#64748b" }}>
                       Saldo disponible:{" "}
-                      <span className="sc-number" style={{ fontWeight: 600, color: "#0b1629" }}>
+                      <span className="sc-number" style={{ fontWeight: 700, color: "#0b1629" }}>
                         {fmtMXN(cliente.saldo)}
                       </span>
                       {cliente.dbPortafolioId && (
@@ -542,14 +525,14 @@ function OperacionesContent() {
                       </option>
                     ))}
                   </SelectField>
-                  {instrumento && (
-                    <div style={{ display: "flex", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                        Tipo: <strong style={{ color: "#00c2e0" }}>{instrumento.tipo}</strong>
-                      </span>
-                      <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                        Vto: <strong style={{ color: "#0b1629" }}>{instrumento.vto}</strong>
-                      </span>
+                    {instrumento && (
+                      <div style={{ display: "flex", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 13, color: "#94a3b8" }}>
+                          Tipo: <strong style={{ color: "#00c2e0" }}>{instrumento.tipo}</strong>
+                        </span>
+                        <span style={{ fontSize: 13, color: "#94a3b8" }}>
+                          Vto: <strong style={{ color: "#0b1629" }}>{instrumento.vto}</strong>
+                        </span>
                       {instrumento.dbId && (
                         <span style={{ fontSize: 12, color: "#94a3b8" }}>
                           <Database size={10} style={{ display: "inline", marginBottom: -1 }} />
@@ -569,7 +552,8 @@ function OperacionesContent() {
                 </div>
 
                 {/* Precio + Cantidad */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div style={{ height: 1, background: "#f1f5f9", margin: "2px 0" }} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                   <div>
                     <Label>Precio unitario</Label>
                     <NumInput
@@ -577,9 +561,9 @@ function OperacionesContent() {
                       suffix="MXN" step="0.0001" min="0.0001"
                     />
                     {instrumento && (
-                      <p style={{ margin: "5px 0 0", fontSize: 12, color: "#94a3b8" }}>
+                      <p style={{ margin: "7px 0 0", fontSize: 13, color: "#94a3b8" }}>
                         Ref. valuación:{" "}
-                        <span className="sc-number" style={{ color: "#00c2e0" }}>
+                        <span className="sc-number" style={{ color: "#00c2e0", fontWeight: 700 }}>
                           ${instrumento.precioRef.toFixed(4)}
                         </span>
                       </p>
@@ -616,8 +600,8 @@ function OperacionesContent() {
                   disabled={!canSubmit || saving}
                   onClick={() => setShowConfirm(true)}
                   style={{
-                    padding: "13px 0", borderRadius: 10, border: "none",
-                    fontSize: 14, fontWeight: 700, cursor: (canSubmit && !saving) ? "pointer" : "not-allowed",
+                    padding: "15px 0", borderRadius: 10, border: "none",
+                    fontSize: 15, fontWeight: 700, cursor: (canSubmit && !saving) ? "pointer" : "not-allowed",
                     background: (canSubmit && !saving)
                       ? op === "compra"
                         ? "linear-gradient(135deg,#22c55e,#16a34a)"
@@ -643,8 +627,8 @@ function OperacionesContent() {
           </div>
 
           {/* ── Trade Ticket ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div className="sc-result-panel" style={{ padding: "22px 20px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            <div className="sc-result-panel" style={{ padding: "28px 26px", flex: 1 }}>
               <div style={{ position: "relative", zIndex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
                   <span style={{
@@ -679,14 +663,14 @@ function OperacionesContent() {
                   { label: "Cantidad", value: cantidad ? fmtInt(parseInt(cantidad)) : "—", mono: true },
                 ].map(({ label, value, mono }) => (
                   <div key={label} style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "baseline",
-                    padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "11px 0", borderBottom: "1px solid rgba(255,255,255,0.06)",
                   }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>{label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>{label}</span>
                     <span style={{
-                      fontSize: 13, color: "rgba(255,255,255,0.85)",
+                      fontSize: 13, color: "rgba(255,255,255,0.88)",
                       fontFamily: mono ? "'IBM Plex Mono', monospace" : "'DM Sans', sans-serif",
-                      fontWeight: 600, textAlign: "right", maxWidth: 160,
+                      fontWeight: 600, textAlign: "right", maxWidth: 180,
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>
                       {value}
@@ -695,24 +679,24 @@ function OperacionesContent() {
                 ))}
 
                 <div style={{
-                  marginTop: 14, padding: "14px 16px",
+                  marginTop: 18, padding: "18px 20px",
                   background: "rgba(0,194,224,0.08)", border: "1px solid rgba(0,194,224,0.2)",
-                  borderRadius: 10,
+                  borderRadius: 12,
                 }}>
-                  <p style={{ margin: "0 0 3px", fontSize: 11, color: "rgba(255,255,255,0.5)", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: 11, color: "rgba(255,255,255,0.45)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
                     Importe total
                   </p>
-                  <p className="sc-price-lg" style={{ color: total > 0 ? "#00c2e0" : "rgba(255,255,255,0.3)", margin: 0 }}>
+                  <p className="sc-price-lg" style={{ color: total > 0 ? "#00c2e0" : "rgba(255,255,255,0.25)", margin: 0 }}>
                     {total > 0 ? fmtMXN(total) : "—"}
                   </p>
                 </div>
 
                 {cliente && total > 0 && (
-                  <div style={{ marginTop: 10, padding: "10px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)" }}>
+                  <div style={{ marginTop: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Saldo post-op</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Saldo post-op</span>
                       <span className="sc-number" style={{
-                        fontSize: 13, fontWeight: 600,
+                        fontSize: 14, fontWeight: 700,
                         color: saldoPost < 0 ? "#ef4444" : "#22c55e",
                       }}>
                         {fmtMXN(Math.abs(saldoPost))}{saldoPost < 0 ? " (déficit)" : ""}
@@ -723,27 +707,16 @@ function OperacionesContent() {
               </div>
             </div>
 
-            <div style={{
-              background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0",
-              padding: "14px 16px",
-              display: "flex", gap: 10, alignItems: "flex-start",
-            }}>
-              <Clock size={13} color="#94a3b8" style={{ marginTop: 2, flexShrink: 0 }} />
-              <p style={{ margin: 0, fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
-                Las operaciones se registran con <strong>timestamp UTC</strong> e ID único. El log es
-                inmutable — no puede editarse ni eliminarse desde la plataforma.
-              </p>
-            </div>
           </div>
         </div>
 
         {/* ── Últimas operaciones ─────────────────────────────────────────────── */}
         <div style={{
-          marginTop: 24, background: "#fff", borderRadius: 14,
+          marginTop: 28, background: "#fff", borderRadius: 16,
           border: "1px solid #e2e8f0", overflow: "hidden",
         }}>
           <div style={{
-            padding: "18px 22px", borderBottom: "1px solid #f1f5f9",
+            padding: "22px 28px", borderBottom: "1px solid #f1f5f9",
             display: "flex", justifyContent: "space-between", alignItems: "center",
           }}>
             <div>
@@ -787,8 +760,8 @@ function OperacionesContent() {
                   <tr style={{ background: "#f8fafc" }}>
                     {["ID", "Tipo", "Empresa", "Instrumento", "Cantidad", "Importe", "Precio", "Fecha"].map(h => (
                       <th key={h} style={{
-                        padding: "10px 16px", textAlign: "left",
-                        fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
+                        padding: "12px 20px", textAlign: "left",
+                        fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
                         textTransform: "uppercase", color: "#94a3b8",
                         borderBottom: "1px solid #f1f5f9",
                         whiteSpace: "nowrap",
@@ -804,10 +777,10 @@ function OperacionesContent() {
                       key={tx.id}
                       style={{ background: idx % 2 === 0 ? "#fff" : "#fafafa" }}
                     >
-                      <td style={{ padding: "10px 16px", color: "#94a3b8", fontFamily: "monospace", fontSize: 11 }}>
+                      <td style={{ padding: "13px 20px", color: "#94a3b8", fontFamily: "monospace", fontSize: 11 }}>
                         #{tx.id}
                       </td>
-                      <td style={{ padding: "10px 16px" }}>
+                      <td style={{ padding: "13px 20px" }}>
                         <span style={{
                           display: "inline-flex", alignItems: "center", gap: 4,
                           padding: "3px 9px", borderRadius: 12, fontSize: 11, fontWeight: 700,
@@ -820,28 +793,28 @@ function OperacionesContent() {
                           {tx.tipo_operacion}
                         </span>
                       </td>
-                      <td style={{ padding: "10px 16px", color: "#0b1629", fontWeight: 500 }}>
+                      <td style={{ padding: "13px 20px", color: "#0b1629", fontWeight: 500 }}>
                         {tx.empresa_nombre}
                       </td>
-                      <td style={{ padding: "10px 16px" }}>
+                      <td style={{ padding: "13px 20px" }}>
                         <span style={{ color: "#0b1629", fontWeight: 500 }}>{tx.instrumento_label}</span>
                         <span style={{
                           marginLeft: 6, fontSize: 10, fontWeight: 700, color: "#00c2e0",
-                          background: "rgba(0,194,224,0.08)", padding: "1px 6px", borderRadius: 4,
+                          background: "rgba(0,194,224,0.08)", padding: "2px 7px", borderRadius: 4,
                         }}>
                           {tx.instrumento_tipo}
                         </span>
                       </td>
-                      <td className="sc-number" style={{ padding: "10px 16px", color: "#0b1629" }}>
+                      <td className="sc-number" style={{ padding: "13px 20px", color: "#0b1629" }}>
                         {fmtInt(tx.cantidad)}
                       </td>
-                      <td className="sc-number" style={{ padding: "10px 16px", color: "#0b1629", fontWeight: 600 }}>
+                      <td className="sc-number" style={{ padding: "13px 20px", color: "#0b1629", fontWeight: 600 }}>
                         {fmtMXN(tx.monto_total)}
                       </td>
-                      <td className="sc-number" style={{ padding: "10px 16px", color: "#64748b" }}>
+                      <td className="sc-number" style={{ padding: "13px 20px", color: "#64748b" }}>
                         {tx.precio_sucio != null ? `$${tx.precio_sucio.toFixed(4)}` : "—"}
                       </td>
-                      <td style={{ padding: "10px 16px", color: "#64748b", whiteSpace: "nowrap", fontSize: 12 }}>
+                      <td style={{ padding: "13px 20px", color: "#64748b", whiteSpace: "nowrap", fontSize: 12 }}>
                         {fmtFecha(tx.fecha)}
                       </td>
                     </tr>
