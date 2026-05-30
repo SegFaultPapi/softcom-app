@@ -40,7 +40,6 @@ export async function POST(req: Request) {
   const body = await req.json()
   const { id_portafolio, id_instrumento, tipo_operacion, cantidad, monto_total, precio_sucio } = body
 
-  // Aceptar IDs directos (del front) o los viejos keys de mock (legacy)
   const portafolioId: number = typeof id_portafolio === "number"
     ? id_portafolio
     : PORTAFOLIO_MAP[body.clienteId] ?? null
@@ -54,16 +53,24 @@ export async function POST(req: Request) {
   }
 
   const supabase = adminClient()
+
+  // Llamar la función atómica: inserta transaccion + actualiza posicion + actualiza saldo
+  const { data: rpcData, error: rpcError } = await supabase.rpc("registrar_operacion", {
+    p_id_portafolio:  portafolioId,
+    p_id_instrumento: instrumentoId,
+    p_tipo_operacion: tipo_operacion,
+    p_cantidad:       Math.round(cantidad),
+    p_monto_total:    monto_total,
+    p_precio_sucio:   precio_sucio ?? 0,
+  })
+
+  if (rpcError) return NextResponse.json({ error: rpcError.message }, { status: 500 })
+
+  const idTransaccion = (rpcData as { id_transaccion: number })?.id_transaccion
+
+  // Devolver la transacción completa con JOINs para la tabla del historial
   const { data, error } = await supabase
     .from("transaccion")
-    .insert({
-      id_portafolio: portafolioId,
-      id_instrumento: instrumentoId,
-      tipo_operacion,
-      cantidad: Math.round(cantidad),
-      monto_total,
-      precio_sucio: precio_sucio ?? null,
-    })
     .select(`
       id_transaccion,
       tipo_operacion,
@@ -74,6 +81,7 @@ export async function POST(req: Request) {
       instrumento:id_instrumento ( tipo, serie, tasa ),
       portafolio:id_portafolio ( empresa:id_empresa ( nombre ) )
     `)
+    .eq("id_transaccion", idTransaccion)
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

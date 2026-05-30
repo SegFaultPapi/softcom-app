@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Briefcase, Download, TrendingUp, TrendingDown,
   Wallet, PieChart, BarChart2, Activity,
@@ -14,14 +14,21 @@ import { RouteGuard } from "@/components/route-guard"
 import { useAuth } from "@/lib/auth-context"
 import { PageHeader } from "@/components/page-header"
 
-// ── Mock data ──────────────────────────────────────────────
+// ── Mock data (fallback cuando DB está vacía) ──────────────
 const CLIENTES = [
   { id: "1", nombre: "Inversora del Norte SA" },
   { id: "2", nombre: "Fondo Bajío Capital" },
   { id: "3", nombre: "Corporativo Noreste SA" },
 ]
 
-const POSICIONES = [
+const CAPITAL_MOCK = 3_028_847.32
+
+type Posicion = {
+  id: string; instrumento: string; tipo: string
+  cantidad: number; precioCompra: number; precioActual: number; vencimiento: string
+}
+
+const POSICIONES_MOCK: Posicion[] = [
   {
     id: "p1",
     instrumento: "CETES 28d",
@@ -60,31 +67,23 @@ const POSICIONES = [
   },
 ]
 
-// ── Computed KPIs ──────────────────────────────────────────
-const valorTotal = POSICIONES.reduce((s, p) => s + p.precioActual * p.cantidad, 0)
-const capitalDisponible = 3_028_847.32
-const capitalTotal = valorTotal + capitalDisponible
-const pctInvertido = (valorTotal / capitalTotal) * 100
-
-const plTotal = POSICIONES.reduce((s, p) => s + (p.precioActual - p.precioCompra) * p.cantidad, 0)
-
-// ── Chart data ─────────────────────────────────────────────
-const cetesValor = POSICIONES.filter(p => p.tipo === "CETES")
-  .reduce((s, p) => s + p.precioActual * p.cantidad, 0)
-const bonosValor = POSICIONES.filter(p => p.tipo === "BONO_M")
-  .reduce((s, p) => s + p.precioActual * p.cantidad, 0)
-
-const donutData = [
-  { name: "CETES", value: cetesValor },
-  { name: "Bonos", value: bonosValor },
-]
 const DONUT_COLORS = ["#00c2e0", "#3b82f6"]
 
-const barData = POSICIONES.map(p => ({
-  name: p.instrumento.length > 14 ? p.instrumento.slice(0, 14) + "…" : p.instrumento,
-  valor: +(p.precioActual * p.cantidad / 1_000_000).toFixed(3),
-  tipo: p.tipo,
-}))
+function computeKPIs(posiciones: Posicion[], saldo: number) {
+  const valorTotal = posiciones.reduce((s, p) => s + p.precioActual * p.cantidad, 0)
+  const capitalTotal = valorTotal + saldo
+  const pctInvertido = capitalTotal > 0 ? (valorTotal / capitalTotal) * 100 : 0
+  const plTotal = posiciones.reduce((s, p) => s + (p.precioActual - p.precioCompra) * p.cantidad, 0)
+  const cetesValor = posiciones.filter(p => p.tipo === "CETES").reduce((s, p) => s + p.precioActual * p.cantidad, 0)
+  const bonosValor = posiciones.filter(p => p.tipo === "BONO_M").reduce((s, p) => s + p.precioActual * p.cantidad, 0)
+  const donutData = [{ name: "CETES", value: cetesValor }, { name: "Bonos", value: bonosValor }]
+  const barData = posiciones.map(p => ({
+    name: p.instrumento.length > 14 ? p.instrumento.slice(0, 14) + "…" : p.instrumento,
+    valor: +(p.precioActual * p.cantidad / 1_000_000).toFixed(3),
+    tipo: p.tipo,
+  }))
+  return { valorTotal, capitalTotal, pctInvertido, plTotal, donutData, barData }
+}
 
 // ── Helpers ────────────────────────────────────────────────
 const fmtMXN = (n: number) =>
@@ -102,26 +101,22 @@ const fmtShort = (n: number) => {
 const fmtInt = (n: number) => new Intl.NumberFormat("es-MX").format(n)
 const fmtMono4 = (n: number) => n.toFixed(4)
 
-function exportCSV() {
+function exportCSV(posiciones: Posicion[], valorTotal: number, plTotal: number) {
   const rows = [
     ["Instrumento", "Tipo", "Cantidad", "Precio_Compra", "Precio_Actual", "Valor_Total", "PnL"],
-    ...POSICIONES.map(p => [
-      p.instrumento, p.tipo,
-      p.cantidad,
-      p.precioCompra.toFixed(4),
-      p.precioActual.toFixed(4),
+    ...posiciones.map(p => [
+      p.instrumento, p.tipo, p.cantidad,
+      p.precioCompra.toFixed(4), p.precioActual.toFixed(4),
       (p.precioActual * p.cantidad).toFixed(2),
       ((p.precioActual - p.precioCompra) * p.cantidad).toFixed(2),
     ]),
-    ["TOTAL", "", "", "", "",
-      valorTotal.toFixed(2),
-      plTotal.toFixed(2)],
+    ["TOTAL", "", "", "", "", valorTotal.toFixed(2), plTotal.toFixed(2)],
   ]
   const csv = rows.map(r => r.join(",")).join("\n")
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
-  a.href = url; a.download = "portafolio_cliente_2026-05-27.csv"; a.click()
+  a.href = url; a.download = `portafolio_${new Date().toISOString().slice(0, 10)}.csv`; a.click()
   URL.revokeObjectURL(url)
 }
 
@@ -254,12 +249,42 @@ function PortafolioContent() {
   const [sortKey, setSortKey] = useState<SortKey>("instrumento")
   const [sortDir, setSortDir] = useState<SortDir>("asc")
 
+  // ── Datos reales de BD (con fallback al mock si está vacío) ──
+  const [realPosiciones, setRealPosiciones] = useState<Posicion[] | null>(null)
+  const [realSaldo, setRealSaldo] = useState<number | null>(null)
+  const [loadingReal, setLoadingReal] = useState(true)
+  const [esReal, setEsReal] = useState(false)
+
+  useEffect(() => {
+    setLoadingReal(true)
+    fetch(`/api/portafolio?portafolioId=${clienteId}`, { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then((data: { posiciones: Posicion[]; saldo: number } | null) => {
+        if (data && data.posiciones.length > 0) {
+          setRealPosiciones(data.posiciones)
+          setRealSaldo(data.saldo)
+          setEsReal(true)
+        } else {
+          setRealPosiciones(null)
+          setRealSaldo(data?.saldo ?? null)
+          setEsReal(false)
+        }
+      })
+      .catch(() => { setRealPosiciones(null); setEsReal(false) })
+      .finally(() => setLoadingReal(false))
+  }, [clienteId])
+
+  // Usar datos reales si existen, sino mock
+  const posiciones = realPosiciones ?? POSICIONES_MOCK
+  const saldo = realSaldo ?? CAPITAL_MOCK
+  const { valorTotal, capitalTotal, pctInvertido, plTotal, donutData, barData } = computeKPIs(posiciones, saldo)
+
   function handleSort(key: SortKey) {
     if (key === sortKey) setSortDir(d => d === "asc" ? "desc" : "asc")
     else { setSortKey(key); setSortDir("asc") }
   }
 
-  const sortedPosiciones = [...POSICIONES].sort((a, b) => {
+  const sortedPosiciones = [...posiciones].sort((a, b) => {
     let av: number | string, bv: number | string
     switch (sortKey) {
       case "instrumento":  av = a.instrumento; bv = b.instrumento; break
@@ -291,7 +316,7 @@ function PortafolioContent() {
         ]}
         actions={
           <button
-            onClick={exportCSV}
+            onClick={() => exportCSV(posiciones, valorTotal, plTotal)}
             style={{
               display: "flex", alignItems: "center", gap: 7,
               padding: "8px 16px", borderRadius: 8,
@@ -371,14 +396,14 @@ function PortafolioContent() {
           <KPICardHero
             label="Capital Invertido"
             value={fmtShort(valorTotal)}
-            sub={`${POSICIONES.length} posiciones activas`}
+            sub={`${posiciones.length} posiciones activas`}
             icon={Briefcase}
             color="#6366f1"
             bar={pctInvertido}
           />
           <KPICardHero
             label="Capital Disponible"
-            value={fmtShort(capitalDisponible)}
+            value={fmtShort(saldo)}
             sub={`${(100 - pctInvertido).toFixed(1)}% libre para operar`}
             icon={Wallet}
             color="#22c55e"
@@ -492,7 +517,9 @@ function PortafolioContent() {
                 </span>
               </div>
               <p style={{ fontSize: 12, color: "#94a3b8", margin: "3px 0 0" }}>
-                {isGerente ? clienteNombre : "Tu portafolio"} · {POSICIONES.length} instrumentos
+                {isGerente ? clienteNombre : "Tu portafolio"} · {posiciones.length} instrumentos
+                {esReal && <span style={{ marginLeft: 6, color: "#22c55e", fontSize: 10, fontWeight: 700 }}>● BD</span>}
+                {!esReal && !loadingReal && <span style={{ marginLeft: 6, color: "#94a3b8", fontSize: 10 }}>mock</span>}
               </p>
             </div>
             <div style={{ overflowX: "auto" }}>
@@ -626,7 +653,7 @@ function PortafolioContent() {
 
         {/* Note */}
         <p style={{ fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
-          Datos de demostración · Precios actualizados al cierre de operaciones · {new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}
+          {esReal ? "Datos reales de base de datos" : "Datos de demostración (mock)"} · {new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}
         </p>
       </div>
     </div>

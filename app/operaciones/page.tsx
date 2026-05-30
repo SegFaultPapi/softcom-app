@@ -420,7 +420,7 @@ function OperacionesContent() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-[1fr_380px]">
+        <div className="grid grid-cols-1 gap-6 items-stretch lg:grid-cols-[1fr_380px]">
 
           {/* ── Form ── */}
           <div style={{

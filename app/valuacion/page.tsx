@@ -268,7 +268,7 @@ function CetesForm() {
   const handleReset = () => { setQty("") }
 
   return (
-    <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 items-stretch lg:grid-cols-2">
 
       {/* ── Left: Inputs ── */}
       <div style={{
@@ -383,7 +383,7 @@ function BonoForm() {
   const aniosValido = !isNaN(aniosNum) && aniosNum > 1
 
   return (
-    <div className="grid grid-cols-1 gap-6 items-start lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-6 items-stretch lg:grid-cols-2">
 
       {/* ── Left: Inputs ── */}
       <div style={{

@@ -773,28 +773,16 @@ const NEWS = [
 // ─────────────────────────────────────────────────────────────
 
 const MENU_DATA: Record<string, {
-  headline: string
-  description: string
-  bullets: string[]
-  cta: string
   accentColor: string
-  imgLabel: string
+  items: string[]
 }> = {
   Plataforma: {
-    headline: "Infraestructura institucional",
-    description: "Seguridad, control de acceso y auditoría desde el primer día.",
-    bullets: ["Autenticación con Email OTP y Google OAuth", "Roles granulares: Admin, Gerente y Analista", "Log inmutable de cada operación y acceso"],
-    cta: "Conocer la plataforma",
     accentColor: "#00c2e0",
-    imgLabel: "Panel de administración",
+    items: ["Panel de Administración", "Registro de Operaciones", "Autenticación Segura", "Reportes Ejecutivos"],
   },
   "Casos de uso": {
-    headline: "Para cada tipo de institución",
-    description: "Adaptado a los flujos de trabajo del mercado de deuda mexicano.",
-    bullets: ["Fondos de inversión y gestoras de activos", "Tesorerías corporativas de corto plazo", "Casas de bolsa con trazabilidad regulatoria"],
-    cta: "Ver casos de uso",
     accentColor: "#00c2e0",
-    imgLabel: "Casos de uso",
+    items: ["Fondos de Inversión", "Tesorerías Corporativas", "Casas de Bolsa", "Multi-empresa"],
   },
 }
 
@@ -807,67 +795,35 @@ function MegaMenuPanel({ active }: { active: string }) {
 
   return (
     <div style={{
-      background: "rgba(6,14,26,0.98)", backdropFilter: "blur(20px)",
-      borderBottom: "1px solid rgba(255,255,255,0.06)",
-      boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+      background: "rgba(11,22,41,0.96)", backdropFilter: "blur(20px)",
+      borderBottom: "1px solid rgba(255,255,255,0.07)",
+      boxShadow: "0 12px 32px rgba(0,0,0,0.35)",
       opacity: mounted ? 1 : 0,
       transform: mounted ? "translateY(0)" : "translateY(-6px)",
-      transition: "opacity 0.18s ease, transform 0.18s ease",
+      transition: "opacity 0.2s ease, transform 0.2s ease",
     }}>
-      <div style={{
-        maxWidth: 1200, margin: "0 auto",
-        padding: "20px 24px 22px",
-        display: "grid", gridTemplateColumns: "1fr 200px", gap: 48, alignItems: "center",
-      }}>
 
-        {/* Left: headline + 2-col bullets + CTA */}
-        <div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 14 }}>
-            <h3 className="sc-display-font" style={{ fontSize: 15, fontWeight: 800, color: "#fff", margin: 0 }}>
-              {menu.headline}
-            </h3>
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 400 }}>{menu.description}</span>
-          </div>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px 24px 24px" }}>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 32px", marginBottom: 16 }}>
-            {menu.bullets.map(b => (
-              <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>{b}</span>
+        {/* Items — 4 columns */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0 24px" }}>
+          {menu.items.map(item => (
+            <div key={item} style={{
+              padding: "8px 0", cursor: "pointer",
+              borderTop: `1px solid rgba(255,255,255,0.07)`,
+              transition: "border-color 0.15s",
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = menu.accentColor }}
+              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.07)" }}
+            >
+              <div style={{ fontSize: 13.5, fontWeight: 500, color: "rgba(255,255,255,0.75)", transition: "color 0.15s" }}
+                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.color = "#fff" }}
+                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.color = "rgba(255,255,255,0.75)" }}
+              >
+                {item}
               </div>
-            ))}
-          </div>
-
-          <Link href="/login" style={{
-            display: "inline-flex", alignItems: "center", gap: 7,
-            background: "linear-gradient(135deg, #00c2e0, #0099b8)",
-            color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 13,
-            padding: "8px 18px", borderRadius: 7,
-            boxShadow: "0 3px 12px rgba(0,194,224,0.25)",
-            transition: "opacity 0.15s",
-          }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.85" }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1" }}
-          >
-            {menu.cta} <ChevronRight size={13} />
-          </Link>
-        </div>
-
-        {/* Right: image placeholder */}
-        <div style={{
-          width: "100%", aspectRatio: "4/3",
-          background: "linear-gradient(160deg, #0d1f3c 0%, #071628 100%)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 10,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
-        }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.15)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>
-            {menu.imgLabel}
-          </span>
+            </div>
+          ))}
         </div>
 
       </div>

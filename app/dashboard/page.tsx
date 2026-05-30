@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import {
   Calculator, Briefcase, ArrowLeftRight, Users,
   BarChart3, TrendingUp, Activity, ChevronRight,
@@ -235,11 +236,16 @@ function ChartCard({
 
 // ── Role chart sections ───────────────────────────────────
 
-function ChartsGerenteCartera() {
+function ChartsGerenteCartera({ donut }: { donut?: { name: string; value: number }[] }) {
   const fmt = (v: number) =>
     v >= 1_000_000
       ? `$${(v / 1_000_000).toFixed(2)}M`
       : `$${(v / 1_000).toFixed(0)}K`
+
+  // Usar donut real si existe y tiene datos, sino el mock
+  const donutData = donut && donut.some(d => d.value > 0)
+    ? donut.map((d, i) => ({ ...d, color: ["#00c2e0","#3b82f6","#e2e8f0"][i] ?? "#e2e8f0" }))
+    : donutPortafolio
 
   return (
     <div className="grid grid-cols-1 gap-4 mb-9 lg:grid-cols-3">
@@ -249,13 +255,13 @@ function ChartsGerenteCartera() {
         <ResponsiveContainer width="100%" height={200}>
           <RePieChart>
             <Pie
-              data={donutPortafolio}
+              data={donutData}
               cx="50%" cy="50%"
               innerRadius={55} outerRadius={85}
               paddingAngle={3}
               dataKey="value"
             >
-              {donutPortafolio.map((d) => (
+              {donutData.map((d) => (
                 <Cell key={d.name} fill={d.color} />
               ))}
             </Pie>
@@ -462,15 +468,42 @@ export default function DashboardPage() {
   )
 }
 
+type RealStats = {
+  capitalInvertido: number; saldoTotal: number; capitalTotal: number
+  plMes: number; operacionesMes: number; posicionesCount: number
+  donut: { name: string; value: number }[]
+  hayDatos: boolean
+}
+
 function DashboardContent() {
   const { user } = useAuth()
+  const [realStats, setRealStats] = useState<RealStats | null>(null)
+
+  useEffect(() => {
+    if (user?.role !== "gerente_cartera") return
+    fetch("/api/dashboard/stats", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: RealStats | null) => { if (d?.hayDatos) setRealStats(d) })
+      .catch(() => {})
+  }, [user?.role])
+
   if (!user) return null
 
   const items = MENU.filter(m => m.roles.includes(user.role))
-  const stats = ROLE_STATS[user.role] ?? []
   const now = new Date()
   const timeStr = now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })
   const dateStr = now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })
+
+  // KPI stats: usar datos reales para gerente si están disponibles
+  const stats: { label: string; value: string; delta?: string; up?: boolean; color: string }[] =
+    user.role === "gerente_cartera" && realStats
+      ? [
+          { label: "Capital invertido",   value: realStats.capitalInvertido >= 1e6 ? `$${(realStats.capitalInvertido/1e6).toFixed(2)}M` : `$${(realStats.capitalInvertido/1e3).toFixed(0)}K`, delta: `${realStats.posicionesCount} posiciones`, up: true, color: "#00c2e0" },
+          { label: "P&L (mes actual)",    value: realStats.plMes >= 0 ? `+$${Math.abs(realStats.plMes/1e3).toFixed(1)}K` : `-$${Math.abs(realStats.plMes/1e3).toFixed(1)}K`, delta: realStats.plMes >= 0 ? "ganancia" : "pérdida", up: realStats.plMes >= 0, color: realStats.plMes >= 0 ? "#22c55e" : "#ef4444" },
+          { label: "VaR (1d, 95%)",       value: "$125K", delta: "dentro del límite", up: false, color: "#ef4444" },
+          { label: "Operaciones (mes)",   value: String(realStats.operacionesMes), color: "#6366f1" },
+        ]
+      : (ROLE_STATS[user.role] ?? [])
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#f0f4f8 0%,#e8eef5 100%)" }}>
@@ -671,7 +704,7 @@ function DashboardContent() {
         )}
 
         <div className="anim-fade-up delay-3">
-          {user.role === "gerente_cartera" && <ChartsGerenteCartera />}
+          {user.role === "gerente_cartera" && <ChartsGerenteCartera donut={realStats?.donut} />}
           {user.role === "analyst" && <ChartsAnalyst />}
           {user.role === "admin" && <ChartsAdmin />}
         </div>
